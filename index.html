@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TWINKHDS - Demo Interaktif Deteksi Dini Kelainan Jantung Anak</title>
+<meta name="description" content="Prototipe antarmuka TWINKHDS: Clinical Decision Support System berbasis CNN dan Explainable Logistic Regression dengan Edge Inference untuk deteksi dini kelainan jantung anak di Puskesmas terpencil. GEMASTE X EXPO 2026, PENS.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="page">
+  <div class="showcase">
+
+    <!-- ============ PHONE MOCKUP (centered) ============ -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="side-power"></div>
+        <div class="side-vol1"></div>
+        <div class="side-vol2"></div>
+        <div class="screen-area">
+
+          <div class="status-bar">
+            <span id="clock">09:41</span>
+            <span>●●● Antarakala</span>
+          </div>
+
+          <div class="app-scroll" id="appScroll">
+
+            <!-- ============================================================ -->
+            <!-- SCREEN: DASHBOARD -->
+            <!-- ============================================================ -->
+            <section class="screen visible" data-screen="beranda">
+              <header class="app-header">
+                <div class="brand-mark">
+                  <img src="assets/logo-icon.svg" alt="TWINKHDS" class="logo-img">
+                </div>
+                <span class="brand-name">TWINKHDS</span>
+                <div class="header-side">
+                  <!-- <button class="icon-btn" data-action="open-about" aria-label="Tentang demo"> -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><path d="M10 17l5-5-5-5M15 12H3"/></svg>
+                  </button>
+                </div>
+              </header>
+
+              <div class="screen-body">
+                <div class="hero-card">
+                  <div class="hero-icon">
+                    <img src="assets/logo-icon.svg" alt="TWINKHDS" class="logo-img">
+                  </div>
+                  <h2>Mulai Pemeriksaan Baru</h2>
+                  <p>Sambungkan dengan perangkat fisik TWINKHDS untuk memulai deteksi dini kelainan jantung anak secara real-time, 100% offline.</p>
+                  <button class="btn" data-nav="input-pasien">Mulai Sekarang
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                  </button>
+                </div>
+
+                <div class="section-label">Ringkasan Hari Ini</div>
+                <div class="summary-stack">
+                  <div class="summary-card-full">
+                    <div class="ic" style="background:var(--green-100)"><svg viewBox="0 0 24 24" fill="none" stroke="#0E6E4A" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"/><circle cx="10" cy="7" r="4"/></svg></div>
+                    <span>Pasien Diperiksa</span>
+                    <b id="statPasien">0</b>
+                  </div>
+                </div>
+
+                <div class="section-label">Riwayat Pemeriksaan <a href="#" data-nav="riwayat" style="color:var(--green-700); font-weight:700; text-transform:none; letter-spacing:0; font-size:12.5px;">Lihat semua</a></div>
+                <div id="homeHistoryList"></div>
+              </div>
+
+              <nav class="bottom-nav" data-navbar></nav>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- SCREEN: INPUT DATA PASIEN -->
+            <!-- ============================================================ -->
+            <section class="screen" data-screen="input-pasien">
+              <header class="app-header">
+                <button class="icon-btn" data-nav="beranda" aria-label="Kembali">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <span class="brand-name" style="font-size:15px;">Pemeriksaan Awal</span>
+                <div class="header-side">
+                  
+                </div>
+              </header>
+              <div class="screen-body">
+
+                <div class="card">
+                  <div class="card-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6"/></svg>
+                    Data Pasien
+                  </div>
+                  <div class="field">
+                    <label>Nama Lengkap</label>
+                    <input type="text" id="pName" placeholder="Masukkan nama pasien...">
+                  </div>
+                  <div class="field">
+                    <label>Usia</label>
+                    <div class="unit-input">
+                      <input type="number" id="pAge" placeholder="0" min="0" max="18">
+                      <span>Tahun</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3h6l1 4H8l1-4z"/><path d="M6 7h12l1 13a1 1 0 01-1 1H6a1 1 0 01-1-1L6 7z"/></svg>
+                    Data Tambahan
+                  </div>
+                  <div class="field">
+                    <label>Jenis Kelamin</label>
+                    <div class="seg seg-radio" id="pGender">
+                      <button data-val="L"><i class="dot"></i><span><b>Laki-laki</b></span></button>
+                      <button data-val="P"><i class="dot"></i><span><b>Perempuan</b></span></button>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Berat Badan</label>
+                    <div class="unit-input"><input type="number" id="pWeight" step="0.1" placeholder="Contoh: 15.2"><span>kg</span></div>
+                  </div>
+                  <div class="field">
+                    <label>Tinggi Badan</label>
+                    <div class="unit-input"><input type="number" id="pHeight" placeholder="Contoh: 95"><span>cm</span></div>
+                  </div>
+                </div>
+
+              </div>
+              <div style="padding:0 18px 18px;">
+                <button class="btn btn-primary" id="btnLanjutEvaluasi" disabled>Lanjutkan Evaluasi
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+              </div>
+              <nav class="bottom-nav" data-navbar></nav>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- SCREEN: PANDUAN AUSKULTASI -->
+            <!-- ============================================================ -->
+            <section class="screen" data-screen="panduan-auskultasi">
+              <header class="app-header">
+                <button class="icon-btn" data-nav="input-pasien" aria-label="Kembali">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <span class="brand-name" style="font-size:15px;">Panduan Auskultasi</span>
+                <div class="header-side"></div>
+                <!-- <div class="header-side"><div class="avatar-circle">CP</div></div> -->
+              </header>
+              <div class="screen-body">
+                <div class="h1">Panduan Auskultasi</div>
+
+                <div class="body-diagram">
+                  <img src="assets/auskultasi-4titik.jpg" alt="4 titik auskultasi jantung: Aortic, Pulmonal, Trikuspid, Mitral" style="width:100%; border-radius:12px; display:block;">
+                  <div class="diagram-row" style="margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:10px 12px;">
+                    <p style="margin:0; font-size:16.5px; line-height:1.35;"><b>1. Aortic</b><br>Sela iga ke-2 kanan</p>
+                    <p style="margin:0; font-size:16.5px; line-height:1.35;"><b>2. Pulmonal</b><br>Sela iga ke-2 kiri</p>
+                    <p style="margin:0; font-size:16.5px; line-height:1.35;"><b>3. Trikuspid</b><br>Sela iga ke-4 kiri</p>
+                    <p style="margin:0; font-size:16.5px; line-height:1.35;"><b>4. Mitral</b><br>Apeks jantung</p>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                    Protokol Rekaman
+                  </div>
+                  <div class="protocol-step">
+                    <div class="protocol-num">1</div>
+                    <div><h4>Posisi Pasien</h4><p>Pastikan pasien duduk tegak dan tenang. Area dada dapat diakses dengan mudah untuk keempat titik auskultasi.</p></div>
+                  </div>
+                  <div class="protocol-step">
+                    <div class="protocol-num">2</div>
+                    <div><h4>Lingkungan Tenang</h4><p>Kurangi kebisingan di sekitar ruangan agar kualitas rekaman optimal. Setiap titik direkam 15 detik; jika SQI (Signal Quality Index) gagal, alat akan mengulang otomatis.</p></div>
+                  </div>
+                </div>
+              </div>
+              <div style="padding:0 18px 18px;">
+                <button class="btn btn-primary" data-nav="proses-auskultasi">Lanjutkan ke Auskultasi
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+              </div>
+              <nav class="bottom-nav" data-navbar></nav>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- SCREEN: PROSES AUSKULTASI (recording 4 titik) -->
+            <!-- ============================================================ -->
+            <section class="screen" data-screen="proses-auskultasi">
+              <header class="app-header">
+                <button class="icon-btn" data-nav="panduan-auskultasi" aria-label="Kembali">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <span class="brand-name" style="font-size:15px;">Rekam 4 Titik</span>
+                <div class="header-side"></div>
+              </header>
+              <div class="screen-body">
+                <div class="timer-card">
+                  <div class="point-label"><span class="mic-pulse"></span><span id="activePointLabel">Menunggu perangkat mulai merekam…</span></div>
+                  <div class="timer-num" id="timerNum">00:00 / 00:15</div>
+                  <div class="timer-bar"><div class="timer-bar-fill" id="timerBarFill"></div></div>
+                </div>
+
+                <div class="alert alert-info">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                  <p>Operasikan <b>perangkat fisik TWINKHDS</b> di samping untuk merekam suara jantung. Layar ini akan mengikuti secara otomatis.</p>
+                </div>
+
+                <div class="section-label">Status Pemeriksaan</div>
+                <div class="point-list" id="pointList"></div>
+              </div>
+              <div style="padding:0 18px 18px;">
+                <button class="btn btn-primary" id="btnLanjutAuskultasi" disabled>Lanjutkan ke Analisis AI
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+              </div>
+              <nav class="bottom-nav" data-navbar></nav>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- SCREEN: PROSES AI -->
+            <!-- ============================================================ -->
+            <section class="screen" data-screen="proses-ai">
+              <header class="app-header">
+                <div class="brand-mark"><img src="assets/logo-icon.svg" alt="TWINKHDS" class="logo-img"></div>
+                <span class="brand-name">TWINKHDS</span>
+              </header>
+              <div class="screen-body">
+                <div class="processing-wrap">
+                  <div class="spin-ring">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2a4 4 0 00-4 4v5a4 4 0 008 0V6a4 4 0 00-4-4z"/><path d="M6 11a6 6 0 0012 0M12 17v4"/></svg>
+                  </div>
+                  <h3>Sistem Sedang Menganalisis…</h3>
+                  <p>Sistem sedang menganalisis suara jantung dan parameter fisiologis untuk mendeteksi kelainan jantung anak</p>
+                </div>
+
+                <div class="step-list" id="aiSteps">
+                  <div class="step-row" data-step="1"><div class="step-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div><span class="label">Bandpass Filter &amp; Signal Quality Index (SQI)</span><span class="step-tag">ANTRIAN</span></div>
+                  <div class="step-row" data-step="2"><div class="step-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div><span class="label">Ekstraksi Fitur STFT + MFCC</span><span class="step-tag">ANTRIAN</span></div>
+                  <div class="step-row" data-step="3"><div class="step-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div><span class="label">Klasifikasi CNN (Model 1, Prob. Murmur per Titik)</span><span class="step-tag">ANTRIAN</span></div>
+                  <div class="step-row" data-step="4"><div class="step-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div><span class="label">Agregasi 4 Titik (MAX Pooling)</span><span class="step-tag">ANTRIAN</span></div>
+                  <div class="step-row" data-step="5"><div class="step-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div><span class="label">Klasifikasi Logistic Regression (Model 2)</span><span class="step-tag">ANTRIAN</span></div>
+                </div>
+
+                <div class="alert alert-info" style="margin-top:16px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                  <p>Harap tidak menutup layar ini hingga analisis selesai untuk akurasi data maksimal.</p>
+                </div>
+              </div>
+              <nav class="bottom-nav" data-navbar></nav>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- SCREEN: HASIL SKRINING -->
+            <!-- ============================================================ -->
+            <section class="screen" data-screen="hasil-skrining">
+              <header class="app-header">
+                <button class="icon-btn" data-nav="proses-auskultasi" aria-label="Kembali">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <span class="brand-name" style="font-size:15px;">Hasil Pemeriksaan</span>
+                <div class="header-side"></div>
+              </header>
+              <div class="screen-body" style="padding-top:12px;">
+                <div class="result-banner" id="resultBanner" style="padding:18px 16px;">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="margin-bottom:6px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+                  <h3 id="resultTitle" style="font-size:30px;">NORMAL</h3>
+                  <p id="resultSub" style="font-size:18px;">Tidak Ditemukan Indikasi Abnormalitas</p>
+                  <span class="tag-focus" id="resultAcousticTag" style="margin-top:8px; display:inline-block; font-size:14px;">Skor Probabilitas: -</span>
+                </div>
+
+                <div class="card" style="margin-bottom:10px; padding:12px;">
+                  <div class="card-title" style="margin-bottom:6px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
+                    Hasil Auskultasi 4 Titik (A/P/T/M)
+                  </div>
+                  <div id="resultPointList" class="point-list point-list-compact"></div>
+                </div>
+
+                <div class="card" style="padding:12px;">
+                  <div class="card-title" style="margin-bottom:6px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                    Tindakan Rekomendasi
+                  </div>
+                  <div id="actionChecklist" class="check-list"></div>
+                  <p style="font-size:10.5px; color:var(--ink-500); margin-top:10px; line-height:1.5;" id="resultActionNote"></p>
+                </div>
+              </div>
+              <div style="padding:0 18px 18px;">
+                <button class="btn btn-primary" data-nav="penjelasan-ai">Lihat Penjelasan AI
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+              </div>
+              <nav class="bottom-nav" data-navbar></nav>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- SCREEN: PENJELASAN KEPUTUSAN AI (Grad-CAM) -->
+            <!-- ============================================================ -->
+            <section class="screen" data-screen="penjelasan-ai">
+              <header class="app-header">
+                <button class="icon-btn" data-nav="hasil-skrining" aria-label="Kembali">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <span class="brand-name" style="font-size:15px;">Penjelasan AI</span>
+                <div class="header-side"></div>
+              </header>
+              <div class="screen-body">
+                <div class="h1" style="font-size:18px;">Penjelasan AI</div>
+                <p class="subtext">Tinjauan faktor klinis yang mendasari hasil deteksi risiko</p>
+
+                <div class="alert alert-red" id="aiConclusionBox">
+                  <div>
+                    <h3>Kesimpulan</h3>
+                    <p id="aiConclusionText">Memuat kesimpulan...</p>
+                  </div>
+                </div>
+
+                <div class="card" style="background:transparent; border:none; box-shadow:none; padding:0;">
+                  <div class="card-title" style="padding:0 2px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+                    Bukti Akustik Suara Jantung
+                  </div>
+                  <div class="spectro-card">
+                    <canvas id="spectroCanvas" width="680" height="266"></canvas>
+                    <p class="disclaimer">*Visualisasi simulasi untuk demonstrasi antarmuka, bukan spektrogram data real.</p>
+                  </div>
+                  <div class="alert alert-info" style="margin-top:12px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                    <p><b>Interpretasi Klinis</b><br><span id="clinicalInterpretationText">Memuat interpretasi...</span></p>
+                  </div>
+                </div>
+              </div>
+              <div style="padding:0 18px 18px;">
+                <button class="btn btn-primary" data-nav="faktor-risiko">Lihat Analisis Faktor Risiko
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+              </div>
+              <nav class="bottom-nav" data-navbar></nav>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- SCREEN: KONTRIBUSI PARAMETER (Odds Ratio/SHAP bars + save) -->
+            <!-- ============================================================ -->
+            <section class="screen" data-screen="faktor-risiko">
+              <header class="app-header">
+                <button class="icon-btn" data-nav="penjelasan-ai" aria-label="Kembali">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <span class="brand-name" style="font-size:15px;">Kontribusi Parameter</span>
+                <div class="header-side"></div>
+              </header>
+              <div class="screen-body">
+                <div class="h1" id="whyTitle" style="font-size:18px;">Kontribusi Parameter</div>
+                <p class="subtext">Faktor-faktor di bawah ini paling berkontribusi terhadap klasifikasi Model 2 (Logistic Regression), dijelaskan melalui Odds Ratio &amp; LinearSHAP.</p>
+
+                <div class="card">
+                  <div class="legend-row">
+                    <div class="legend-dot"><i style="background:var(--red-600)"></i>Mendorong ke Abnormal</div>
+                    <div class="legend-dot"><i style="background:var(--green-600)"></i>Mendorong ke Normal</div>
+                  </div>
+                  <p style="font-size:12px; color:var(--ink-500); margin:2px 0 10px; line-height:1.5;"><b>OR (Odds Ratio)</b>: kelipatan rasio kemungkinan Abnormal untuk tim internal. <b>SHAP (LinearSHAP)</b>: besar &amp; arah kontribusi tiap faktor, ditampilkan untuk nakes agar hasil lebih mudah dipahami.</p>
+                  <div id="factorBars"></div>
+                  <div class="confidence-row">
+                    <span>Tingkat Kepercayaan AI</span>
+                    <b id="confidenceVal">94.2%</b>
+                  </div>
+                </div>
+              </div>
+              <div style="padding:0 18px 18px; display:flex; flex-direction:column; gap:10px;">
+                <button class="btn btn-primary" data-action="save-finish">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  Simpan &amp; Selesai
+                </button>
+                <button class="btn btn-outline" data-action="download-report">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+                  Unduh Laporan
+                </button>
+                <button class="btn btn-ghost" data-nav="penjelasan-ai">Kembali ke Grafik Spektrogram</button>
+              </div>
+              <nav class="bottom-nav" data-navbar></nav>
+            </section>
+
+            <!-- ============================================================ -->
+            <!-- SCREEN: RIWAYAT PASIEN -->
+            <!-- ============================================================ -->
+            <section class="screen" data-screen="riwayat">
+              <header class="app-header">
+                <div class="brand-mark"><img src="assets/logo-icon.svg" alt="TWINKHDS" class="logo-img"></div>
+                <span class="brand-name">TWINKHDS</span>
+                <!-- <div class="header-side"><div class="avatar-circle">CP</div></div> -->
+              </header>
+              <div class="screen-body">
+                <div class="h1">Riwayat Pasien</div>
+                <!-- <p class="subtext">Sistem Rekam Medis Regional<br><b style="color:var(--ink-700);">Klinik Desa Sukamaju</b></p> -->
+
+                <div class="searchbar-row">
+                  <div class="searchbar" style="flex:1; margin-bottom:0;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                    <input type="text" id="searchRiwayat" placeholder="Cari nama pasien, NIK, atau ID...">
+                  </div>
+                  <div class="chip" style="margin:0;">Filter
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+                  </div>
+                </div>
+                <button class="btn btn-primary" data-action="export-csv" style="margin:12px 0 15.5px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+                  Export CSV
+                </button>
+
+                <div id="riwayatList"></div>
+                <button class="btn btn-ghost" style="margin-top:6px;">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0114.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0020.5 15"/></svg>
+                  Muat Data Sebelumnya
+                </button>
+              </div>
+              <nav class="bottom-nav" data-navbar></nav>
+            </section>
+
+          </div><!-- /app-scroll -->
+
+          <!-- TOAST -->
+          <div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg><span id="toastText">Tersimpan</span></div>
+
+          <!-- ABOUT MODAL -->
+          <div class="modal-overlay" id="aboutModal">
+            <div class="modal-sheet">
+              <h3>Tentang Demo Ini</h3>
+              <p><b>TWINKHDS</b> adalah Clinical Decision Support System (CDSS) berbentuk stetoskop digital modular berbasis CNN dan Explainable Logistic Regression dengan Edge Inference, untuk deteksi dini kelainan jantung anak (usia &gt;28 hari–&lt;18 tahun) di Puskesmas wilayah terpencil, beroperasi 100% offline.</p>
+              <p>Website ini adalah <b>prototipe antarmuka (UI/UX)</b> yang mensimulasikan alur kerja lengkap perangkat, mulai dari input data pasien, auskultasi 4 titik (Aortic, Pulmonal, Trikuspid, Mitral), sampai penjelasan keputusan AI (Dual-XAI: Grad-CAM untuk tim internal &amp; Odds Ratio/LinearSHAP untuk nakes). Probabilitas murmur, klasifikasi Normal/Abnormal, dan tingkat kepercayaan AI pada demo ini dihasilkan secara simulatif untuk menunjukkan bagaimana sistem asli akan bekerja.</p>
+              <p>Dikembangkan oleh Tim TWINKHDS, Politeknik Elektronika Negeri Surabaya (PENS), untuk Lomba Esai Nasional GEMASTE X EXPO 2026.</p>
+              <button class="btn btn-primary" data-action="close-about">Mengerti</button>
+            </div>
+          </div>
+
+        </div><!-- /screen-area -->
+      </div><!-- /phone -->
+
+    </div>
+
+    <!-- ============ PHYSICAL DEVICE MOCKUP ============ -->
+    <div class="device-wrap">
+      <div class="device-caption">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 18h6"/></svg>
+        <span><b>PERANGKAT FISIK TWINKHDS</b><br>Dioperasikan langsung oleh nakes via LCD &amp; 3 tombol ini</span>
+      </div>
+      <div class="device">
+        <img src="assets/device.png" alt="Perangkat fisik TWINKHDS" class="device-img" draggable="false">
+        <div class="device-led led-red" id="deviceLed" title="Indikator status rekam"></div>
+        <div class="device-lcd" id="deviceLcd"></div>
+        <button class="device-btn btn-kiri" data-devbtn="kiri" aria-label="Geser kursor kiri"></button>
+        <button class="device-btn btn-pilih" data-devbtn="pilih" aria-label="Pilih / konfirmasi"></button>
+        <button class="device-btn btn-kanan" data-devbtn="kanan" aria-label="Geser kursor kanan"></button>
+        <div class="device-label lbl-kiri">◀ Kiri</div>
+        <div class="device-label lbl-pilih">Pilih</div>
+        <div class="device-label lbl-kanan">Kanan ▶</div>
+      </div>
+      <div class="device-disclaimer">
+        Seluruh bagian output pada purwarupa ini, termasuk hasil prediksi, skor risiko, penjelasan keputusan AI bersifat placeholder dan belum merepresentasikan performa maupun spesifikasi akhir, mengingat model machine learning belum diintegrasikan secara fungsional.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Dua perhitungan terpisah:
+  // 1) SKALA — dihitung dari seluruh konten .showcase (termasuk teks disclaimer
+  //    yang memanjang ke kanan), supaya tidak ada apapun yang kepotong.
+  // 2) POSISI/CENTER — dihitung HANYA dari klaster visual utama (HP + alat),
+  //    supaya teks disclaimer yang panjang ke satu sisi TIDAK menggeser pusat
+  //    HP+alat menjauh dari tengah layar (ini yang kemarin bikin "kurang ke
+  //    tengah, kegeser kekiri").
+  (function(){
+    var showcase = document.querySelector('.showcase');
+    function fit(){
+      showcase.style.transform = 'none';
+      var full = showcase.getBoundingClientRect();
+      var phoneR = document.querySelector('.phone').getBoundingClientRect();
+      var deviceR = document.querySelector('.device').getBoundingClientRect();
+
+      var coreLeft = Math.min(phoneR.left, deviceR.left) - full.left;
+      var coreRight = Math.max(phoneR.right, deviceR.right) - full.left;
+      var coreTop = Math.min(phoneR.top, deviceR.top) - full.top;
+      var coreBottom = Math.max(phoneR.bottom, deviceR.bottom) - full.top;
+      var coreCenterX = (coreLeft + coreRight) / 2;
+      var coreCenterY = (coreTop + coreBottom) / 2;
+
+      var availW = window.innerWidth - 24;
+      var availH = window.innerHeight - 24;
+      var scale = Math.min(availW / full.width, availH / full.height);
+
+      var targetX = window.innerWidth / 2;
+      var targetY = window.innerHeight / 2;
+      var tx = targetX - scale * coreCenterX;
+      var ty = targetY - scale * coreCenterY;
+
+      showcase.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+    }
+    window.addEventListener('resize', fit);
+    window.addEventListener('orientationchange', fit);
+    if(document.fonts && document.fonts.ready){ document.fonts.ready.then(fit); }
+    window.addEventListener('load', fit);
+    document.addEventListener('DOMContentLoaded', fit);
+    fit();
+  })();
+</script>
+<script src="app.js"></script>
+<script src="device.js"></script>
+</body>
+</html>
