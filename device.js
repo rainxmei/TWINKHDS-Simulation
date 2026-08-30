@@ -68,7 +68,7 @@
       return `<div class="${ringClass}" style="left:${pt.x}%; top:${pt.y}%;"><span>${POINT_CODES[i]}</span></div>`;
     }).join("");
     return `<div class="dlcd-diagram-wrap">
-      <img src="assets/GAMBAR TULANG RUSUK Vbesar.png" class="dlcd-diagram-img" alt="4 titik auskultasi jantung">
+      <img src="assets/auskultasi-4titik.png" class="dlcd-diagram-img" alt="4 titik auskultasi jantung">
       ${markers}
     </div>`;
   }
@@ -126,7 +126,7 @@
     } else if(D.state === "recording"){
       resultHTML = `<b style="color:#3A423F;">MEREKAM…</b><span>Jangan gerakkan stetoskop</span>`;
     } else if(D.state === "badsignal"){
-      resultHTML = `<b style="color:#C98A00;">SQI GAGAL</b><span>Sinyal kurang jelas, mengulang…</span>`;
+      resultHTML = `<b style="color:#C98A00;">SINYAL LEMAH</b><span>Sinyal lemah, mengulang…</span>`;
     } else if(res){
       resultHTML = `<b style="color:#007A7A;">✓ TEREKAM</b><span>Lanjut ke titik berikutnya</span>`;
     } else {
@@ -179,16 +179,8 @@
       startRecording();
       return;
     }
-    if(D.state === "allDone"){
-      D.done = [false,false,false,false];
-      D.results = [null,null,null,null];
-      D.cursor = 0;
-      D.state = "idle";
-      render();
-      emit("twinkhds:reset", {});
-      return;
-    }
-    // recording / badsignal: tombol tidak berfungsi, otomatis berjalan
+    // allDone / recording / badsignal: tombol tidak berfungsi di state ini.
+    // Lanjut ke analisis dilakukan lewat tombol di layar HP, bukan lewat alat.
   }
 
   function startRecording(){

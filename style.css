@@ -530,7 +530,7 @@ a{color:inherit;}
 /* Toggle satuan usia: Hari / Bulan / Tahun */
 .seg-unit{display:flex; gap:6px;}
 .seg-unit button{flex:1; border:1.5px solid var(--border); background:#fff; border-radius:var(--radius-sm); padding:8px 6px; font-size:14.5px; font-weight:600; color:var(--ink-700); text-align:center; transition:border-color .15s ease, background .15s ease, color .15s ease;}
-.seg-unit button.selected{background:var(--green-700); border-color:var(--green-700); color:#fff;}
+.seg-unit button.selected{border-color:var(--green-700); background:var(--green-050); color:var(--green-800);}
 .seg-gender{display:flex; flex-direction:row; gap:9px;}
 .seg-gender button{
   flex:1; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:7px;
@@ -539,8 +539,8 @@ a{color:inherit;}
   transition:border-color .15s ease, background .15s ease, color .15s ease;
 }
 .seg-gender button .gender-icon{width:18px; height:18px; flex:0 0 auto; color:var(--ink-500);}
-.seg-gender button.selected{border-color:var(--green-700); background:var(--green-050); color:var(--green-800);}
-.seg-gender button.selected .gender-icon{color:var(--green-700);}
+.seg-gender button.selected{background:var(--green-700); border-color:var(--green-700); color:#fff;}
+.seg-gender button.selected .gender-icon{color:#fff;}
 /* Sembunyikan tombol naik/turun pada input angka */
 .no-spin input[type=number]::-webkit-outer-spin-button,
 .no-spin input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}

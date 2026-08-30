@@ -65,9 +65,9 @@
       if(raw) return JSON.parse(raw);
     }catch(e){}
     return [
-      { name:"Nayla Putri", id:"P-2026-8942", ageDisplay:"3 Tahun", gender:"P", weight:12.5, height:88,  tier:"abnormal", probMurmur:0.81, when:"12 Okt 2026, 09:14" },
-      { name:"Raka Aditya", id:"P-2026-8941", ageDisplay:"8 Tahun", gender:"L", weight:26,   height:126, tier:"normal",   probMurmur:0.14, when:"12 Okt 2026, 08:47" },
-      { name:"Zahra Amelia", id:"P-2026-8938", ageDisplay:"45 Hari", gender:"P", weight:4.2,  height:54,  tier:"normal",   probMurmur:0.22, when:"11 Okt 2026, 10:02" },
+      { name:"Nayla Putri", id:"P-2026-8942", ageDisplay:"3 Tahun", gender:"P", weight:12.5, height:88,  tier:"abnormal", probMurmur:0.81, when:"29 Agu 2026, 09:14" },
+      { name:"Raka Aditya", id:"P-2026-8941", ageDisplay:"8 Tahun", gender:"L", weight:26,   height:126, tier:"normal",   probMurmur:0.14, when:"28 Agu 2026, 08:47" },
+      { name:"Zahra Amelia", id:"P-2026-8938", ageDisplay:"45 Hari", gender:"P", weight:4.2,  height:54,  tier:"normal",   probMurmur:0.22, when:"27 Agu 2026, 10:02" },
     ];
   }
   function saveHistory(list){ try{ localStorage.setItem(HKEY, JSON.stringify(list)); }catch(e){} }
@@ -259,7 +259,7 @@
       } else if(i===activeIdx && mode==="recording"){
         statusHtml = `<span class="point-status" style="color:var(--green-700)">Merekam…</span>`;
       } else if(i===activeIdx && mode==="badsignal"){
-        statusHtml = `<span class="point-status pill-tag tag-wheeze">SQI Gagal, Mengulang</span>`;
+        statusHtml = `<span class="point-status pill-tag tag-wheeze">Sinyal Lemah, Mengulang</span>`;
       }
       return `<div class="${cls}"><div class="point-num">${p.code}</div><div class="point-name"><b style="text-transform:uppercase;">${p.name}</b><span class="point-desc">${p.desc}</span></div>${statusHtml}</div>`;
     }).join("");
@@ -287,7 +287,7 @@
         $("#activePointLabel").textContent = `Titik Aktif: ${snap.pointNames[snap.cursor]} (${snap.pointDescs[snap.cursor].toLowerCase()})`;
         renderPointList(snap.cursor, "recording");
       } else if(snap.state === "badsignal"){
-        $("#activePointLabel").textContent = `⚠ SQI Gagal, Mengulang Titik ${snap.pointNames[snap.cursor]}`;
+        $("#activePointLabel").textContent = `⚠ Sinyal Lemah, Mengulang Titik ${snap.pointNames[snap.cursor]}`;
         renderPointList(snap.cursor, "badsignal");
       } else if(snap.state === "allDone"){
         $("#activePointLabel").textContent = "✓ 4 Titik Selesai Direkam";
@@ -325,7 +325,7 @@
     if(!isScreenVisible("proses-auskultasi")) return;
     clearInterval(phoneAusTimer);
     const snap = window.TwinkhdsDevice.getSnapshot();
-    $("#activePointLabel").textContent = `⚠ SQI Gagal, Mengulang Titik ${snap.pointNames[e.detail.index]}`;
+    $("#activePointLabel").textContent = `⚠ Sinyal Lemah, Mengulang Titik ${snap.pointNames[e.detail.index]}`;
     setTimerDisplay(1, "Mengulang…");
     renderPointList(e.detail.index, "badsignal");
   });
