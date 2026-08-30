@@ -5,9 +5,9 @@
 
 *{box-sizing:border-box; margin:0; padding:0;}
 html,body{height:100%; overflow:hidden;}
-body{font-family:var(--font-body); color:var(--ink-900); background: 
+body{font-family:var(--font-body); color:var(--ink-900); background: #FFF;}
     /* radial-gradient(1200px 600px at 12% -10%, #123B2C 0%, #0B2A20 45%, #081D17 100%); height:100vh; -webkit-font-smoothing:antialiased;} */
-    radial-gradient(1200px 600px at 12% -10%, #123B3B 0%, #0B2A2A 45%, #081D1D 100%); height:100vh; -webkit-font-smoothing:antialiased;}
+    /* radial-gradient(1200px 600px at 12% -10%, #123B3B 0%, #0B2A2A 45%, #081D1D 100%); height:100vh; -webkit-font-smoothing:antialiased;} */
 
 button{font-family:inherit; cursor:pointer;}
 a{color:inherit;}
