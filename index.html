@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TWINKHDS - Demo Interaktif Deteksi Dini Kelainan Jantung Anak</title>
-<meta name="description" content="Prototipe antarmuka TWINKHDS: Clinical Decision Support System berbasis CNN dan Explainable Logistic Regression dengan Edge Inference untuk deteksi dini kelainan jantung anak di Puskesmas terpencil. GEMASTE X EXPO 2026, PENS.">
+<title>TWINKHDS</title>
+<meta name="description" content="Purwarupa Interaktif TWINKHDS: Perangkat Bioakustik Portabel Berbasis CNN dan Explainable Logistic Regression Terintegrasi Edge Inference untuk Deteksi Dini Kelainan Jantung Anak di Puskesmas Terpencil">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -412,7 +412,7 @@
                 <div class="searchbar-row">
                   <div class="searchbar" style="flex:1; margin-bottom:0;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-                    <input type="text" id="searchRiwayat" placeholder="Cari nama pasien atau ID...">
+                    <input type="text" id="searchRiwayat" placeholder="Cari nama pasien">
                   </div>
                   <div class="chip" style="margin:0;">Filter
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
@@ -459,16 +459,35 @@
         <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 18h6"/></svg>
         <span><b>PERANGKAT FISIK TWINKHDS</b><br>Dioperasikan langsung oleh nakes via LCD &amp; 3 tombol ini</span>
       </div>
-      <div class="device">
-        <img src="assets/device.png" alt="Perangkat fisik TWINKHDS" class="device-img" draggable="false">
-        <div class="device-led led-red" id="deviceLed" title="Indikator status rekam"></div>
-        <div class="device-lcd" id="deviceLcd"></div>
-        <button class="device-btn btn-kiri" data-devbtn="kiri" aria-label="Geser kursor kiri"></button>
-        <button class="device-btn btn-pilih" data-devbtn="pilih" aria-label="Pilih / konfirmasi"></button>
-        <button class="device-btn btn-kanan" data-devbtn="kanan" aria-label="Geser kursor kanan"></button>
-        <div class="device-label lbl-kiri">◀ Kiri</div>
-        <div class="device-label lbl-pilih">Pilih</div>
-        <div class="device-label lbl-kanan">Kanan ▶</div>
+      <div class="device-diagram-row">
+        <div class="device">
+          <img src="assets/device.png" alt="Perangkat fisik TWINKHDS" class="device-img" draggable="false">
+          <div class="device-led led-red" id="deviceLed" title="Indikator status rekam"></div>
+          <div class="device-lcd" id="deviceLcd"></div>
+          <button class="device-btn btn-kiri" data-devbtn="kiri" aria-label="Geser kursor kiri"></button>
+          <button class="device-btn btn-pilih" data-devbtn="pilih" aria-label="Pilih / konfirmasi"></button>
+          <button class="device-btn btn-kanan" data-devbtn="kanan" aria-label="Geser kursor kanan"></button>
+          <div class="device-label lbl-kiri">◀ Kiri</div>
+          <div class="device-label lbl-pilih">Pilih</div>
+          <div class="device-label lbl-kanan">Kanan ▶</div>
+          <div class="device-port" id="devicePort"></div>
+        </div>
+
+        <div class="diagram-stage">
+          <div class="diagram-caption">Seret stetoskop ke titik auskultasi</div>
+          <div class="diagram-frame">
+            <img src="assets/auskultasi-4titik.png" alt="4 titik auskultasi jantung" class="diagram-img" draggable="false">
+            <div class="point-layer" id="pointLayer">
+              <button class="point" data-idx="0" style="left:43.85%; top:36.60%;" aria-label="Titik Aorta"></button>
+              <button class="point" data-idx="1" style="left:55.84%; top:36.62%;" aria-label="Titik Pulmonal"></button>
+              <button class="point" data-idx="2" style="left:58.30%; top:53.47%;" aria-label="Titik Trikuspid"></button>
+              <button class="point" data-idx="3" style="left:60.28%; top:61.89%;" aria-label="Titik Mitral"></button>
+            </div>
+          </div>
+        </div>
+
+        <svg class="cable-svg" id="cableSvg"><path id="cablePath" fill="none"></path></svg>
+        <img src="assets/probe.png" class="device-probe" id="deviceProbe" alt="Probe stetoskop" draggable="false">
       </div>
       <div class="device-disclaimer">
         Seluruh bagian output pada purwarupa ini, termasuk hasil prediksi, skor risiko, penjelasan keputusan AI bersifat placeholder dan belum merepresentasikan performa maupun spesifikasi akhir, mengingat model machine learning belum diintegrasikan secara fungsional.
@@ -493,11 +512,13 @@
       var full = showcase.getBoundingClientRect();
       var phoneR = document.querySelector('.phone').getBoundingClientRect();
       var deviceR = document.querySelector('.device').getBoundingClientRect();
+      var diagramEl = document.querySelector('.diagram-stage');
+      var diagramR = diagramEl ? diagramEl.getBoundingClientRect() : deviceR;
 
-      var coreLeft = Math.min(phoneR.left, deviceR.left) - full.left;
-      var coreRight = Math.max(phoneR.right, deviceR.right) - full.left;
-      var coreTop = Math.min(phoneR.top, deviceR.top) - full.top;
-      var coreBottom = Math.max(phoneR.bottom, deviceR.bottom) - full.top;
+      var coreLeft = Math.min(phoneR.left, deviceR.left, diagramR.left) - full.left;
+      var coreRight = Math.max(phoneR.right, deviceR.right, diagramR.right) - full.left;
+      var coreTop = Math.min(phoneR.top, deviceR.top, diagramR.top) - full.top;
+      var coreBottom = Math.max(phoneR.bottom, deviceR.bottom, diagramR.bottom) - full.top;
       var coreCenterX = (coreLeft + coreRight) / 2;
       var coreCenterY = (coreTop + coreBottom) / 2;
 
@@ -511,6 +532,8 @@
       var ty = targetY - scale * coreCenterY;
 
       showcase.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+      window.__twinkhdsScale = scale;
+      document.dispatchEvent(new CustomEvent('twinkhds:scale-changed', { detail:{ scale: scale } }));
     }
     window.addEventListener('resize', fit);
     window.addEventListener('orientationchange', fit);

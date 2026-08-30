@@ -130,7 +130,7 @@
     } else if(res){
       resultHTML = `<b style="color:#007A7A;">✓ TEREKAM</b><span>Lanjut ke titik berikutnya</span>`;
     } else {
-      resultHTML = `<b style="color:#3A423F; font-size:9px">SIAP MEREKAM</b><span style="font-size:8px">Tekan PILIH untuk mulai</span>`;
+      resultHTML = `<b style="color:#3A423F;">SIAP MEREKAM</b><span>Tekan PILIH untuk mulai</span>`;
     }
 
     const pointLabel = allDone
@@ -150,6 +150,8 @@
         <div class="dlcd-result">${resultHTML}</div>
         <div class="dlcd-pointname">${pointLabel}</div>
       </div>`;
+
+    syncPointVisuals();
   }
 
   /* ---------- transitions ---------- */
@@ -216,6 +218,7 @@
     D.done[D.cursor] = true;
     D.state = "complete";
     render();
+    resetProbePosition(true);
     emit("twinkhds:point-result", { index: D.cursor, name: POINT_NAMES[D.cursor], desc: POINT_DESCS[D.cursor], code: POINT_CODES[D.cursor], murmur, prob });
 
     setTimeout(()=>{
@@ -228,9 +231,140 @@
         D.cursor = next;
         D.state = "idle";
         render();
+        emit("twinkhds:cursor-idle", { index: D.cursor });
       }
     }, 1100);
   }
+
+  /* ---------- diagram markers (sinkron dengan D.cursor/D.done) ---------- */
+  function syncPointVisuals(){
+    const pts = document.querySelectorAll(".diagram-stage .point");
+    if(!pts.length) return;
+    pts.forEach((p, i)=>{
+      const done = D.done[i];
+      const isActive = i === D.cursor && D.state !== "allDone";
+      p.classList.toggle("done", !!done);
+      p.classList.toggle("selected", isActive && (D.state === "idle" || D.state === "recording" || D.state === "badsignal") && !done);
+    });
+  }
+
+  /* ---------- drag-and-drop stetoskop (probe) ---------- */
+  let dragging = false, dragOffX = 0, dragOffY = 0;
+
+  function scaleFactor(){ return window.__twinkhdsScale || 1; }
+
+  function stageEl(){ return $(".device-diagram-row"); }
+  function probeEl(){ return $("#deviceProbe"); }
+  function portEl(){ return $("#devicePort"); }
+  function pointElsList(){ return Array.from(document.querySelectorAll(".diagram-stage .point")); }
+
+  function updateCable(){
+    const stage = stageEl(), probe = probeEl(), port = portEl();
+    const path = $("#cablePath");
+    if(!stage || !probe || !port || !path) return;
+    const s = scaleFactor();
+    const stageR = stage.getBoundingClientRect();
+    const portR = port.getBoundingClientRect();
+    const probeR = probe.getBoundingClientRect();
+    const x0 = (portR.left - stageR.left)/s + portR.width/s/2;
+    const y0 = (portR.top - stageR.top)/s + portR.height/s/2;
+    const x1 = (probeR.left - stageR.left)/s + probeR.width/s/2;
+    const y1 = (probeR.top - stageR.top)/s + probeR.height/s*0.28;
+    const dist = Math.hypot(x1-x0, y1-y0);
+    const sag = Math.min(70, dist*0.22);
+    const mx = (x0+x1)/2, my = (y0+y1)/2 + sag;
+    path.setAttribute("d", `M ${x0} ${y0} Q ${mx} ${my} ${x1} ${y1}`);
+  }
+
+  let cableAnimStopAt = 0;
+  function animateCableFor(ms){
+    const stopAt = performance.now() + ms;
+    cableAnimStopAt = stopAt;
+    function step(){
+      updateCable();
+      if(performance.now() < cableAnimStopAt) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function resetProbePosition(animate){
+    const stage = stageEl(), probe = probeEl(), port = portEl();
+    if(!stage || !probe || !port) return;
+    probe.classList.toggle("snap-transition", !!animate);
+    const s = scaleFactor();
+    const stageR = stage.getBoundingClientRect();
+    const portR = port.getBoundingClientRect();
+    const x = (portR.left - stageR.left)/s - 4;
+    const y = (portR.top - stageR.top)/s + 10;
+    probe.style.left = x + "px";
+    probe.style.top = y + "px";
+    if(animate){
+      animateCableFor(400);
+      setTimeout(()=>probe.classList.remove("snap-transition"), 400);
+    } else {
+      requestAnimationFrame(updateCable);
+    }
+  }
+
+  function findNearestPoint(clientX, clientY){
+    let best = null, bestDist = 9999;
+    pointElsList().forEach(p=>{
+      if(p.classList.contains("done")) return;
+      const r = p.getBoundingClientRect();
+      const cx = r.left + r.width/2, cy = r.top + r.height/2;
+      const d = Math.hypot(clientX-cx, clientY-cy);
+      if(d < 46 && d < bestDist){ bestDist = d; best = p; }
+    });
+    return best;
+  }
+  function clearDragoverHighlights(){
+    pointElsList().forEach(p=>p.classList.remove("dragover"));
+  }
+
+  function dropOnPoint(idx){
+    if(!D.phoneReady || D.state !== "idle") return;
+    D.cursor = idx;
+    render();
+    startRecording();
+  }
+
+  function bindProbeDrag(){
+    const probe = probeEl();
+    if(!probe) return;
+    probe.addEventListener("pointerdown", (e)=>{
+      if(!D.phoneReady || D.state !== "idle"){ flashDenied(); return; }
+      dragging = true;
+      probe.classList.remove("snap-transition");
+      probe.setPointerCapture(e.pointerId);
+      const s = scaleFactor();
+      const r = probe.getBoundingClientRect();
+      dragOffX = (e.clientX - r.left)/s; dragOffY = (e.clientY - r.top)/s;
+    });
+    probe.addEventListener("pointermove", (e)=>{
+      if(!dragging) return;
+      const s = scaleFactor();
+      const stageR = stageEl().getBoundingClientRect();
+      probe.style.left = ((e.clientX - stageR.left)/s - dragOffX) + "px";
+      probe.style.top = ((e.clientY - stageR.top)/s - dragOffY) + "px";
+      updateCable();
+      clearDragoverHighlights();
+      const p = findNearestPoint(e.clientX, e.clientY);
+      if(p) p.classList.add("dragover");
+    });
+    probe.addEventListener("pointerup", (e)=>{
+      if(!dragging) return;
+      dragging = false;
+      const target = findNearestPoint(e.clientX, e.clientY);
+      clearDragoverHighlights();
+      if(target){
+        dropOnPoint(parseInt(target.dataset.idx, 10));
+      } else {
+        resetProbePosition(true);
+      }
+    });
+  }
+
+  window.addEventListener("resize", ()=>{ if(D.phoneReady) requestAnimationFrame(updateCable); });
 
   /* ---------- public snapshot for app.js ---------- */
   window.TwinkhdsDevice = {
@@ -264,7 +398,15 @@
 
   document.addEventListener("DOMContentLoaded", ()=>{
     bind();
+    bindProbeDrag();
     render();
+    resetProbePosition(false);
+  });
+
+  window.addEventListener("load", ()=>{ resetProbePosition(false); });
+
+  document.addEventListener("twinkhds:scale-changed", ()=>{
+    if(!dragging) requestAnimationFrame(()=>resetProbePosition(false));
   });
 
   document.addEventListener("twinkhds:phone-nav", (e)=>{
@@ -273,5 +415,8 @@
       D.phoneReady = ready;
       render();
     }
+    const probe = probeEl();
+    if(probe) probe.classList.toggle("disabled", !ready);
+    if(ready) requestAnimationFrame(()=>resetProbePosition(false));
   });
 })();

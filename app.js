@@ -43,8 +43,8 @@
     meetingNo: 1,
   };
 
-  const AGE_MIN_DAYS = 29;    // > 28 hari
-  const AGE_MAX_DAYS = 6574;  // < 18 tahun (17 tahun 11 bulan, hari terakhir sebelum ulang tahun ke-18)
+  const AGE_MIN_DAYS = 29;       // > 28 hari
+  const AGE_MAX_DAYS = 18*365;   // < 18 tahun (usia 18 tahun ke atas ditolak)
   function ageToDays(value, unit){
     value = parseFloat(value) || 0;
     if(unit==="hari") return value;
@@ -67,7 +67,7 @@
     return [
       { name:"Nayla Putri", id:"P-2026-8942", ageDisplay:"3 Tahun", gender:"P", weight:12.5, height:88,  tier:"abnormal", probMurmur:0.81, when:"29 Agu 2026, 09:14" },
       { name:"Raka Aditya", id:"P-2026-8941", ageDisplay:"8 Tahun", gender:"L", weight:26,   height:126, tier:"normal",   probMurmur:0.14, when:"28 Agu 2026, 08:47" },
-      { name:"Zahra Amelia", id:"P-2026-8938", ageDisplay:"45 Hari", gender:"P", weight:4.2,  height:54,  tier:"normal",   probMurmur:0.22, when:"27 Agu 2026, 10:02" },
+      { name:"Zahra Amelia", id:"P-2026-8938", ageDisplay:"45 Hari", gender:"P", weight:4.2,  height:54,  tier:"normal",   probMurmur:0.22, when:"28 Agu 2026, 10:02" },
     ];
   }
   function saveHistory(list){ try{ localStorage.setItem(HKEY, JSON.stringify(list)); }catch(e){} }
@@ -336,6 +336,13 @@
     if(isScreenVisible("proses-auskultasi")){
       renderPointList(index, "complete");
     }
+  });
+
+  document.addEventListener("twinkhds:cursor-idle", (e)=>{
+    if(!isScreenVisible("proses-auskultasi")) return;
+    const i = e.detail.index;
+    $("#activePointLabel").textContent = `Titik Aktif: ${POINTS[i].name} (${POINTS[i].desc.toLowerCase()})`;
+    renderPointList(-1, "waiting");
   });
 
   document.addEventListener("twinkhds:all-done", ()=>{
