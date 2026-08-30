@@ -4,7 +4,7 @@
    untuk keperluan demonstrasi antarmuka (lihat modal "Tentang").
    Alur: Data Pasien (Nama, Usia, Gender, BB, TB) -> Panduan Auskultasi
    -> Rekam 4 Titik (A/P/T/M) -> Proses AI (CNN + Logistic Regression)
-   -> Hasil (Normal/Abnormal) -> Penjelasan AI (Grad-CAM)
+   -> Hasil (Jantung Normal/Abnormal) -> Penjelasan AI (Grad-CAM)
    -> Kontribusi Parameter (Odds Ratio & LinearSHAP)
    ========================================================= */
 (function(){
@@ -12,23 +12,23 @@
 
   /* ---------------- constants ---------------- */
   const POINTS = [
-    { id:1, code:"A", name:"Aortic (Sela Iga ke-2 Kanan)"   },
-    { id:2, code:"P", name:"Pulmonal (Sela Iga ke-2 Kiri)"  },
-    { id:3, code:"T", name:"Trikuspid (Sela Iga ke-4 Kiri)" },
-    { id:4, code:"M", name:"Mitral (Apeks Jantung)"         },
+    { id:1, code:"A", name:"Aorta",      desc:"Sela iga kedua kanan" },
+    { id:2, code:"P", name:"Pulmonal",   desc:"Sela iga kedua kiri" },
+    { id:3, code:"T", name:"Trikuspid",  desc:"Sela iga keempat kiri" },
+    { id:4, code:"M", name:"Mitral",     desc:"Apeks jantung" },
   ];
 
   /* ---------------- 2-tier hasil biner (TIDAK ada triase / override) ---------------- */
   const RESULT_TEXT = {
     "normal": {
-      label:"NORMAL", sub:"Tidak Ditemukan Indikasi Abnormalitas", cls:"low",
+      label:"JANTUNG NORMAL", sub:"Tidak terdeteksi kelainan. Tetap jaga pola hidup sehat dan lakukan pemeriksaan ulang pada kunjungan berikutnya ke puskesmas.", cls:"low",
       action:"Tidak ditemukan tanda abnormalitas jantung yang signifikan. Edukasi orang tua/pengasuh mengenai tanda bahaya, dan jadwalkan pemeriksaan rutin berikutnya sesuai jadwal Posyandu/Puskesmas.",
-      checklist:["Edukasi Tanda Bahaya kepada Orang Tua/Pengasuh","Catat Hasil pada Rekam Medis Pasien","Jadwalkan Pemeriksaan Rutin Berikutnya"]
+      checklist:["Edukasi tanda bahaya kepada orang tua/pengasuh","Catat hasil pada rekam medis pasien","Jadwalkan pemeriksaan rutin berikutnya"]
     },
     "abnormal": {
-      label:"ABNORMAL", sub:"Terindikasi Kelainan, Perlu Tindak Lanjut", cls:"high",
+      label:"JANTUNG ABNORMAL", sub:"Terdeteksi kelainan. Rujuk ke Rumah Sakit (FKRTL) mengikuti alur rujukan berjenjang JKN.", cls:"high",
       action:"Rujuk pasien ke fasilitas kesehatan lanjutan (dokter spesialis anak/kardiologi anak) untuk konfirmasi lebih lanjut (mis. ekokardiografi), sertakan hasil & skor probabilitas ini pada surat rujukan, dan jelaskan temuan kepada orang tua/pengasuh.",
-      checklist:["Siapkan Surat Rujukan ke Faskes Lanjutan","Sertakan Hasil & Skor Probabilitas pada Rujukan","Jelaskan Temuan kepada Orang Tua/Pengasuh","Catat pada Rekam Medis untuk Tindak Lanjut"]
+      checklist:["Siapkan surat rujukan ke faskes lanjutan (FKRTL)","Sertakan hasil & skor probabilitas pada rujukan","Jelaskan temuan kepada orang tua/pengasuh","Catat pada rekam medis untuk tindak lanjut"]
     },
   };
   const CLS_LABEL = { high:"Abnormal", low:"Normal" };
@@ -36,12 +36,26 @@
 
   /* ---------------- state ---------------- */
   const state = {
-    patient:{ name:"", age:"", gender:"", weight:"", height:"" },
+    patient:{ name:"", age:"", ageUnit:"tahun", gender:"", weight:"", height:"" },
     points:[],
     result:null,
     lastExamScreen:"beranda",
     meetingNo: 1,
   };
+
+  const AGE_MIN_DAYS = 29;    // > 28 hari
+  const AGE_MAX_DAYS = 6574;  // < 18 tahun (17 tahun 11 bulan, hari terakhir sebelum ulang tahun ke-18)
+  function ageToDays(value, unit){
+    value = parseFloat(value) || 0;
+    if(unit==="hari") return value;
+    if(unit==="bulan") return value*30;
+    return value*365; // tahun
+  }
+  function ageToYears(value, unit){ return ageToDays(value, unit) / 365; }
+  function formatAgeDisplay(value, unit){
+    const unitLabel = unit==="hari" ? "Hari" : unit==="bulan" ? "Bulan" : "Tahun";
+    return `${value} ${unitLabel}`;
+  }
 
   /* ---------------- history (localStorage) ---------------- */
   const HKEY = "twinkhds_gemaste_history_v1";
@@ -51,9 +65,9 @@
       if(raw) return JSON.parse(raw);
     }catch(e){}
     return [
-      { name:"Nayla Putri", id:"P-2026-8942", age:3, gender:"P", weight:12.5, height:88,  tier:"abnormal", probMurmur:0.81, when:"12 Okt 2026" },
-      { name:"Raka Aditya", id:"P-2026-8941", age:8, gender:"L", weight:26,   height:126, tier:"normal",   probMurmur:0.14, when:"12 Okt 2026" },
-      { name:"Zahra Amelia", id:"P-2026-8938", age:5, gender:"P", weight:17,   height:104, tier:"normal",   probMurmur:0.22, when:"11 Okt 2026" },
+      { name:"Nayla Putri", id:"P-2026-8942", ageDisplay:"3 Tahun", gender:"P", weight:12.5, height:88,  tier:"abnormal", probMurmur:0.81, when:"12 Okt 2026, 09:14" },
+      { name:"Raka Aditya", id:"P-2026-8941", ageDisplay:"8 Tahun", gender:"L", weight:26,   height:126, tier:"normal",   probMurmur:0.14, when:"12 Okt 2026, 08:47" },
+      { name:"Zahra Amelia", id:"P-2026-8938", ageDisplay:"45 Hari", gender:"P", weight:4.2,  height:54,  tier:"normal",   probMurmur:0.22, when:"11 Okt 2026, 10:02" },
     ];
   }
   function saveHistory(list){ try{ localStorage.setItem(HKEY, JSON.stringify(list)); }catch(e){} }
@@ -182,18 +196,44 @@
         <p>${rt.label}</p>
         <span class="pill ${CLS_PILL[cls]}">${cls==='high'?"Rujukan":"Selesai"}</span>
       </div>
+      <span class="history-time">${h.when}</span>
     </div>`;
   }
 
   /* ---------------- DATA PASIEN (Nama, Usia, Gender, BB, TB) ---------------- */
   function onSegChange(segId, val){
     if(segId==="pGender") state.patient.gender = val;
+    if(segId==="pAgeUnit"){
+      state.patient.ageUnit = val;
+      const unitLabel = val==="hari" ? "Hari" : val==="bulan" ? "Bulan" : "Tahun";
+      $("#pAgeUnitLabel").textContent = unitLabel;
+    }
     validatePatientForm();
+  }
+
+  function validateAge(){
+    const val = $("#pAge").value;
+    const errEl = $("#pAgeError");
+    if(!val){ errEl.style.display="none"; return false; }
+    const days = ageToDays(val, state.patient.ageUnit);
+    if(days < AGE_MIN_DAYS){
+      errEl.textContent = "Usia terlalu muda. Batas bawah TWINKHDS adalah lebih dari 28 hari.";
+      errEl.style.display = "block";
+      return false;
+    }
+    if(days >= AGE_MAX_DAYS){
+      errEl.textContent = "Usia terlalu tua. Batas atas TWINKHDS adalah kurang dari 18 tahun.";
+      errEl.style.display = "block";
+      return false;
+    }
+    errEl.style.display = "none";
+    return true;
   }
 
   function validatePatientForm(){
     const p = state.patient;
-    const ok = $("#pName").value.trim().length>1 && $("#pAge").value && p.gender
+    const ageOk = validateAge();
+    const ok = $("#pName").value.trim().length>1 && $("#pAge").value && ageOk && p.gender
       && $("#pWeight").value && $("#pHeight").value;
     $("#btnLanjutEvaluasi").disabled = !ok;
   }
@@ -221,7 +261,7 @@
       } else if(i===activeIdx && mode==="badsignal"){
         statusHtml = `<span class="point-status pill-tag tag-wheeze">SQI Gagal, Mengulang</span>`;
       }
-      return `<div class="${cls}"><div class="point-num">${done?"✓":p.code}</div><div class="point-name">${p.code}. ${p.name}</div>${statusHtml}</div>`;
+      return `<div class="${cls}"><div class="point-num">${p.code}</div><div class="point-name"><b style="text-transform:uppercase;">${p.name}</b><span class="point-desc">${p.desc}</span></div>${statusHtml}</div>`;
     }).join("");
     updateLanjutButton();
   }
@@ -242,12 +282,12 @@
     state.points = new Array(4).fill(null);
     const snap = window.TwinkhdsDevice ? window.TwinkhdsDevice.getSnapshot() : null;
     if(snap){
-      snap.results.forEach((r,i)=>{ if(r) state.points[i] = { id:i+1, code:snap.pointCodes[i], name:snap.pointNames[i], murmur:r.murmur, prob:r.prob }; });
+      snap.results.forEach((r,i)=>{ if(r) state.points[i] = { id:i+1, code:snap.pointCodes[i], name:snap.pointNames[i], desc:snap.pointDescs[i], murmur:r.murmur, prob:r.prob }; });
       if(snap.state === "recording"){
-        $("#activePointLabel").textContent = `Titik Aktif: ${snap.pointCodes[snap.cursor]}. ${snap.pointNames[snap.cursor]}`;
+        $("#activePointLabel").textContent = `Titik Aktif: ${snap.pointNames[snap.cursor]} (${snap.pointDescs[snap.cursor].toLowerCase()})`;
         renderPointList(snap.cursor, "recording");
       } else if(snap.state === "badsignal"){
-        $("#activePointLabel").textContent = `⚠ SQI Gagal, Mengulang Titik ${snap.pointCodes[snap.cursor]}`;
+        $("#activePointLabel").textContent = `⚠ SQI Gagal, Mengulang Titik ${snap.pointNames[snap.cursor]}`;
         renderPointList(snap.cursor, "badsignal");
       } else if(snap.state === "allDone"){
         $("#activePointLabel").textContent = "✓ 4 Titik Selesai Direkam";
@@ -266,9 +306,9 @@
   let phoneAusTimer = null;
 
   document.addEventListener("twinkhds:point-start", (e)=>{
-    const { index, code, name, duration } = e.detail;
+    const { index, name, desc, duration } = e.detail;
     if(!isScreenVisible("proses-auskultasi")) return;
-    $("#activePointLabel").textContent = `Titik Aktif: ${code}. ${name}`;
+    $("#activePointLabel").textContent = `Titik Aktif: ${name} (${desc.toLowerCase()})`;
     renderPointList(index, "recording");
     let elapsed = 0;
     clearInterval(phoneAusTimer);
@@ -285,14 +325,14 @@
     if(!isScreenVisible("proses-auskultasi")) return;
     clearInterval(phoneAusTimer);
     const snap = window.TwinkhdsDevice.getSnapshot();
-    $("#activePointLabel").textContent = `⚠ SQI Gagal, Mengulang Titik ${snap.pointCodes[e.detail.index]}`;
+    $("#activePointLabel").textContent = `⚠ SQI Gagal, Mengulang Titik ${snap.pointNames[e.detail.index]}`;
     setTimerDisplay(1, "Mengulang…");
     renderPointList(e.detail.index, "badsignal");
   });
 
   document.addEventListener("twinkhds:point-result", (e)=>{
-    const { index, code, name, murmur, prob } = e.detail;
-    state.points[index] = { id:index+1, code, name, murmur, prob };
+    const { index, code, name, desc, murmur, prob } = e.detail;
+    state.points[index] = { id:index+1, code, name, desc, murmur, prob };
     if(isScreenVisible("proses-auskultasi")){
       renderPointList(index, "complete");
     }
@@ -309,8 +349,8 @@
     if(isScreenVisible("proses-auskultasi")) syncAuscultationScreen();
   });
 
-  // Setelah 4 titik selesai direkam, langsung lanjut ke Proses AI (tanpa layar parameter terpisah,
-  // karena Berat/Tinggi Badan sudah diisi di layar Data Pasien).
+  // Setelah 4 titik selesai direkam, langsung lanjut ke Proses AI (Berat/Tinggi Badan
+  // sudah diisi sejak layar Data Pasien, jadi tidak ada layar parameter terpisah).
   $("#btnLanjutAuskultasi") && $("#btnLanjutAuskultasi").addEventListener("click", ()=>{
     if($("#btnLanjutAuskultasi").disabled) return;
     goTo("proses-ai");
@@ -346,7 +386,8 @@
     const probMurmur = Math.max(0, ...pointProbs); // agregasi 4 titik via MAX Pooling
     const murmurCount = state.points.filter(pt=>pt && pt.murmur).length;
 
-    const ageY = parseFloat(p.age) || 5;
+    const ageY = ageToYears(p.age, p.ageUnit) || 5;
+    const ageDisplay = formatAgeDisplay(p.age||"-", p.ageUnit);
     const weight = parseFloat(p.weight) || 15;
     const height = parseFloat(p.height) || 95;
     const genderVal = p.gender === "P" ? 1 : 0;
@@ -365,15 +406,15 @@
     const tier = pAbnormal >= 0.5 ? "abnormal" : "normal";           // threshold 0,5, bawaan sigmoid
     const confidence = (tier==="abnormal" ? pAbnormal : (1-pAbnormal)) * 100;
 
-    /* Kontribusi faktor: Odds Ratio (untuk tim internal) & LinearSHAP (untuk nakes) - simulasi tampilan */
+    /* Kontribusi faktor: Odds Ratio (tim internal) & LinearSHAP (nakes) - simulasi tampilan */
     const factors = [];
     factors.push(probMurmur>=0.5
       ? { label:`Probabilitas Murmur Tinggi (${Math.round(probMurmur*100)}%)`, weight:probMurmur*100, positive:true }
       : { label:`Probabilitas Murmur Rendah (${Math.round(probMurmur*100)}%)`, weight:(1-probMurmur)*60, positive:false });
-    factors.push({ label:`Usia (${ageY} tahun)`, weight:clamp(Math.abs(ageY-5)*6+18,0,100), positive: ageY<1 || ageY>12 });
+    factors.push({ label:`Usia (${ageDisplay})`, weight:clamp(Math.abs(ageY-5)*6+18,0,100), positive: ageY<1 || ageY>12 });
     factors.push({ label:`Jenis Kelamin (${genderVal===1?"Perempuan":"Laki-laki"})`, weight:22, positive: genderVal===1 });
-    factors.push({ label:`Berat Badan (${weight} kg)`, weight:clamp(Math.abs(weight-20)*2+16,0,100), positive: weight<12 || weight>35 });
-    factors.push({ label:`Tinggi Badan (${height} cm)`, weight:clamp(Math.abs(height-110)/1.5+16,0,100), positive: height<85 });
+    factors.push({ label:`Berat Badan (${weight} Kg)`, weight:clamp(Math.abs(weight-20)*2+16,0,100), positive: weight<12 || weight>35 });
+    factors.push({ label:`Tinggi Badan (${height} Cm)`, weight:clamp(Math.abs(height-110)/1.5+16,0,100), positive: height<85 });
 
     const finalFactors = factors.sort((a,b)=>b.weight-a.weight).slice(0,5);
     const sumW = finalFactors.reduce((s,f)=>s+f.weight,0) || 1;
@@ -387,7 +428,7 @@
 
     state.result = {
       tier, confidence, probMurmur, murmurCount,
-      ageY, weight, height, gender:p.gender,
+      ageY, ageDisplay, weight, height, gender:p.gender,
       factors: finalFactors,
     };
   }
@@ -409,7 +450,7 @@
 
     $("#resultPointList").innerHTML = state.points.map((pt,i)=>{
       const tag = pt && pt.murmur ? ["tag-crackle","Murmur"] : ["tag-normal","Normal"];
-      return `<div class="point-row done"><div class="point-num">✓</div><div class="point-name">${POINTS[i].code}. ${POINTS[i].name}</div><span class="point-status pill-tag ${tag[0]}">${tag[1]}</span></div>`;
+      return `<div class="point-row done"><div class="point-num">${POINTS[i].code}</div><div class="point-name"><b style="text-transform:uppercase;">${POINTS[i].name}</b><span class="point-desc">${POINTS[i].desc}</span></div><span class="point-status pill-tag ${tag[0]}">${tag[1]}</span></div>`;
     }).join("");
   }
 
@@ -423,12 +464,6 @@
     const r = state.result;
     if(!r) return;
     const rt = RESULT_TEXT[r.tier];
-    const box = $("#aiConclusionBox");
-    box.className = "alert " + (rt.cls==="high"?"alert-red":"alert-green");
-    const top = r.factors.slice(0,3).map(f=>f.label.replace(/\s*\(.*?\)/,"").toLowerCase());
-    $("#aiConclusionText").textContent =
-      `Pasien diklasifikasikan ${rt.label} karena ditemukan ${top.join(", ")||"pola akustik & parameter klinis yang sesuai ambang normal"}. Probabilitas murmur hasil agregasi MAX Pooling 4 titik adalah ${Math.round(r.probMurmur*100)}%, ${r.tier==="abnormal" ? "yang bersama parameter fisiologis mendorong keluaran Model 2 (Logistic Regression) ke arah Abnormal." : "yang bersama parameter fisiologis berada dalam ambang normal Model 2 (Logistic Regression)."}`;
-
     const key = r.probMurmur>=0.5 ? "murmur" : "normal";
     const info = ACOUSTIC_INFO[key];
     $("#clinicalInterpretationText").textContent =
@@ -541,43 +576,53 @@
     return [ Math.round(a[0]+(b[0]-a[0])*t), Math.round(a[1]+(b[1]-a[1])*t), Math.round(a[2]+(b[2]-a[2])*t) ];
   }
 
-  /* ---------------- KONTRIBUSI PARAMETER (Odds Ratio & LinearSHAP) ---------------- */
-  function factorRowHTML(f){
-    const shapText = (f.shap>=0?"+":"") + f.shap.toFixed(2);
+  /* ---------------- KONTRIBUSI PARAMETER (Odds Ratio & LinearSHAP, ditampilkan terpisah) ---------------- */
+  function factorRowOR_HTML(f){
     const orText = f.oddsRatio.toFixed(2) + "x";
     return `<div class="factor-row">
-      <div class="factor-top"><b>${f.label}</b></div>
-      <div class="factor-badges" style="display:flex; gap:8px; margin:2px 0 6px;">
-        <span class="factor-shap ${f.oddsRatio>=1?'shap-pos':'shap-neg'}" style="font-size:11.5px;">OR ${orText}</span>
-        <span class="factor-shap ${f.positive?'shap-pos':'shap-neg'}" style="font-size:11.5px;">SHAP ${shapText}</span>
-      </div>
+      <div class="factor-top"><b>${f.label}</b><span class="factor-shap ${f.oddsRatio>=1?'shap-pos':'shap-neg'}">${orText}</span></div>
+      <div class="factor-track"><div class="factor-fill ${f.positive? (f.weight>=70?'fill-high':'fill-mid') : 'fill-low'}" style="width:${f.weight}%"></div></div>
+    </div>`;
+  }
+  function factorRowSHAP_HTML(f){
+    const shapText = (f.shap>=0?"+":"") + f.shap.toFixed(2);
+    return `<div class="factor-row">
+      <div class="factor-top"><b>${f.label}</b><span class="factor-shap ${f.positive?'shap-pos':'shap-neg'}">${shapText}</span></div>
       <div class="factor-track"><div class="factor-fill ${f.positive? (f.weight>=70?'fill-high':'fill-mid') : 'fill-low'}" style="width:${f.weight}%"></div></div>
     </div>`;
   }
 
   function renderFaktorRisiko(){
     const r = state.result; if(!r) return;
-    $("#factorBars").innerHTML = r.factors.map(f=>factorRowHTML(f)).join("");
+    $("#whyTitle").textContent = "Mengapa Terdeteksi " + (r.tier==="abnormal" ? "Abnormal" : "Normal") + "?";
+    $("#factorBarsOR").innerHTML = r.factors.map(f=>factorRowOR_HTML(f)).join("");
+    $("#factorBarsSHAP").innerHTML = r.factors.map(f=>factorRowSHAP_HTML(f)).join("");
     $("#confidenceVal").textContent = r.confidence.toFixed(1)+"%";
   }
 
   /* ---------------- SAVE / FINISH ---------------- */
+  function fullDateTime(){
+    const d = new Date();
+    const tgl = d.toLocaleDateString("id-ID", { day:"numeric", month:"short", year:"numeric" });
+    return `${tgl}, ${nowHHMM()}`;
+  }
+
   function finishAndSave(){
     const r = state.result, p = state.patient;
     if(!r){ showToast("Belum ada hasil untuk disimpan"); return; }
     const entry = {
       name: p.name || "Pasien Tanpa Nama",
       id: "P-2026-" + String(9000+history.length),
-      age: p.age || "-",
+      ageDisplay: r.ageDisplay,
       gender: p.gender || "-",
       weight: r.weight, height: r.height,
       tier: r.tier, probMurmur: r.probMurmur,
-      when: "Hari ini, " + nowHHMM(),
+      when: fullDateTime(),
     };
     history.unshift(entry);
     saveHistory(history);
     showToast("Hasil pemeriksaan tersimpan ke riwayat");
-    state.patient = { name:"", age:"", gender:"", weight:"", height:"" };
+    state.patient = { name:"", age:"", ageUnit:"tahun", gender:"", weight:"", height:"" };
     state.points = new Array(4).fill(null);
     state.result = null;
     resetPatientForm();
@@ -589,7 +634,10 @@
     if($("#pAge")) $("#pAge").value = "";
     if($("#pWeight")) $("#pWeight").value = "";
     if($("#pHeight")) $("#pHeight").value = "";
+    if($("#pAgeError")) $("#pAgeError").style.display = "none";
     $$(".seg button").forEach(b=>b.classList.remove("selected"));
+    $$("#pAgeUnit button").forEach(b=>b.classList.toggle("selected", b.dataset.val==="tahun"));
+    if($("#pAgeUnitLabel")) $("#pAgeUnitLabel").textContent = "Tahun";
     validatePatientForm();
   }
 
@@ -606,14 +654,14 @@
         <span style="font-size:10.5px; color:var(--ink-300);">${h.when}</span>
       </div>
       <div class="hist-meta">
-        <span>👤 ${h.age} Tahun</span>
-        <span>📁 ${CLS_LABEL[rt.cls]}</span>
+        <span>👤 ${h.ageDisplay}</span>
+        <span>${h.gender==='P'?'♀':'♂'} ${h.gender==='P'?'Perempuan':'Laki-laki'}</span>
         <span class="pill ${CLS_PILL[rt.cls]}">${CLS_LABEL[rt.cls]}</span>
       </div>
       <div class="vital-grid" style="margin-top:9px;">
-        <div class="vital-box"><div class="lab">GENDER</div><div class="val">${h.gender==='P'?'Perempuan':'Laki-laki'}</div></div>
-        <div class="vital-box"><div class="lab">BERAT</div><div class="val">${h.weight}<span style="font-size:10px;"> kg</span></div></div>
-        <div class="vital-box"><div class="lab">TINGGI</div><div class="val">${h.height}<span style="font-size:10px;"> cm</span></div></div>
+        <div class="vital-box"><div class="lab">TINGGI</div><div class="val">${h.height}<span style="font-size:10px;"> Cm</span></div></div>
+        <div class="vital-box"><div class="lab">BERAT</div><div class="val">${h.weight}<span style="font-size:10px;"> Kg</span></div></div>
+        <div class="vital-box"><div class="lab">HASIL</div><div class="val ${rt.cls==='high'?'val-danger':'val-ok'}">${CLS_LABEL[rt.cls]}</div></div>
         <div class="vital-box"><div class="lab">PROB. MURMUR</div><div class="val ${h.probMurmur>=0.5?'val-danger':'val-ok'}">${Math.round(h.probMurmur*100)}%</div></div>
       </div>
     </div>`;
@@ -631,10 +679,10 @@
   /* ---------------- EXPORT CSV ---------------- */
   function exportCsv(){
     if(!history.length){ showToast("Belum ada data riwayat"); return; }
-    const header = "Nama,ID,Usia (Tahun),Jenis Kelamin,Berat Badan (kg),Tinggi Badan (cm),Hasil,Probabilitas Murmur (%),Waktu\n";
+    const header = "Nama,ID,Usia,Jenis Kelamin,Berat Badan (Kg),Tinggi Badan (Cm),Hasil,Probabilitas Murmur (%),Tanggal Periksa\n";
     const rows = history.map(h=>{
       const rt = RESULT_TEXT[h.tier];
-      return [h.name, h.id, h.age, h.gender==='P'?'Perempuan':'Laki-laki', h.weight, h.height, rt.label, Math.round(h.probMurmur*100), h.when].join(",");
+      return [h.name, h.id, h.ageDisplay, h.gender==='P'?'Perempuan':'Laki-laki', h.weight, h.height, rt.label, Math.round(h.probMurmur*100), h.when].join(",");
     }).join("\n");
     const blob = new Blob([header+rows], {type:"text/csv"});
     const url = URL.createObjectURL(blob);
@@ -661,23 +709,28 @@
       td{padding:7px 4px; border-bottom:1px solid #eee; font-size:13.5px;}
       td:first-child{color:#6B746F; width:45%;}
       h3{font-size:14px; color:#0E6E4A; margin:18px 0 8px;}
-      .factor{display:flex; justify-content:space-between; font-size:13px; padding:5px 0; border-bottom:1px dashed #eee;}
+      .factor{font-size:13px; padding:6px 0; border-bottom:1px dashed #eee;}
+      .factor .lbl{display:block; margin-bottom:2px;}
+      .factor .vals{display:flex; justify-content:space-between; color:#6B746F;}
       footer{margin-top:26px; font-size:11px; color:#9AA39D; line-height:1.6;}
     </style></head><body>
       <h1>Laporan Hasil Skrining TWINKHDS</h1>
       <div class="tag">${rt.label}</div>
       <table>
         <tr><td>Nama Pasien</td><td>${p.name||"-"}</td></tr>
-        <tr><td>Usia</td><td>${r.ageY} tahun</td></tr>
+        <tr><td>Usia</td><td>${r.ageDisplay}</td></tr>
         <tr><td>Jenis Kelamin</td><td>${p.gender==='P'?'Perempuan':'Laki-laki'}</td></tr>
-        <tr><td>Berat / Tinggi Badan</td><td>${r.weight} kg / ${r.height} cm</td></tr>
+        <tr><td>Berat / Tinggi Badan</td><td>${r.weight} Kg / ${r.height} Cm</td></tr>
         <tr><td>Probabilitas Murmur (Agregasi MAX Pooling, Model 1 CNN)</td><td>${Math.round(r.probMurmur*100)}%</td></tr>
         <tr><td>Klasifikasi Akhir (Model 2, Logistic Regression)</td><td>${rt.label}</td></tr>
         <tr><td>Rekomendasi Tindakan</td><td>${rt.action}</td></tr>
         <tr><td>Skor Probabilitas Akhir</td><td>${r.confidence.toFixed(1)}%</td></tr>
+        <tr><td>Tanggal Periksa</td><td>${fullDateTime()}</td></tr>
       </table>
-      <h3>Kontribusi Parameter (Odds Ratio &amp; LinearSHAP)</h3>
-      ${r.factors.map(f=>`<div class="factor"><span>${f.label}</span><span>OR ${f.oddsRatio.toFixed(2)}x / SHAP ${(f.shap>=0?"+":"")+f.shap.toFixed(2)}</span></div>`).join("")}
+      <h3>Odds Ratio</h3>
+      ${r.factors.map(f=>`<div class="factor"><span class="lbl">${f.label}</span><div class="vals"><span>OR</span><span>${f.oddsRatio.toFixed(2)}x</span></div></div>`).join("")}
+      <h3>LinearSHAP</h3>
+      ${r.factors.map(f=>`<div class="factor"><span class="lbl">${f.label}</span><div class="vals"><span>SHAP</span><span>${(f.shap>=0?"+":"")+f.shap.toFixed(2)}</span></div></div>`).join("")}
       <footer>
         Dokumen ini dihasilkan oleh prototipe antarmuka TWINKHDS untuk keperluan demonstrasi Lomba Esai Nasional GEMASTE X EXPO 2026.
         Seluruh nilai bersifat simulasi dan tidak merepresentasikan hasil diagnosis medis sesungguhnya.

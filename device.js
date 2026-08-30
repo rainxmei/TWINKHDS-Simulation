@@ -6,25 +6,26 @@
    agar progres & hasil selalu identik.
 
    4 titik auskultasi standar (listening posts):
-   A = Aortic (sela iga ke-2 kanan) | P = Pulmonal (sela iga ke-2 kiri)
-   T = Trikuspid (sela iga ke-4 kiri) | M = Mitral (apeks jantung)
+   A = Aorta (sela iga kedua kanan) | P = Pulmonal (sela iga kedua kiri)
+   T = Trikuspid (sela iga keempat kiri) | M = Mitral (apeks jantung)
    ========================================================= */
 (function(){
   "use strict";
 
-  const POINT_NAMES = [
-    "Aortic (Sela Iga ke-2 Kanan)",
-    "Pulmonal (Sela Iga ke-2 Kiri)",
-    "Trikuspid (Sela Iga ke-4 Kiri)",
-    "Mitral (Apeks Jantung)",
+  const POINT_NAMES = ["Aorta","Pulmonal","Trikuspid","Mitral"];
+  const POINT_DESCS = [
+    "Sela iga kedua kanan",
+    "Sela iga kedua kiri",
+    "Sela iga keempat kiri",
+    "Apeks jantung",
   ];
   const POINT_CODES = ["A","P","T","M"];
-  // Posisi titik (dalam %) mengikuti lokasi anatomis pada gambar diagram dada
+  // Posisi titik (dalam %) mengikuti lokasi lingkaran nomor pada gambar baru
   const POINT_XY = [
-    { x:39.95, y:36.6 },
-    { x:59.57, y:36.6 },
-    { x:63.6,  y:53.4 },
-    { x:66.8,  y:61.9 },
+    { x:43.85, y:36.60 },
+    { x:55.84, y:36.62 },
+    { x:58.30, y:53.47 },
+    { x:60.28, y:61.89 },
   ];
   const REC_SECONDS = 3;          // durasi rekam per titik (dipercepat utk demo; alat asli 15 detik)
   const BAD_SIGNAL_CHANCE = 0.16; // peluang SQI (Signal Quality Index) gagal -> retry otomatis
@@ -67,7 +68,7 @@
       return `<div class="${ringClass}" style="left:${pt.x}%; top:${pt.y}%;"><span>${POINT_CODES[i]}</span></div>`;
     }).join("");
     return `<div class="dlcd-diagram-wrap">
-      <img src="assets/auskultasi-4titik.jpg" class="dlcd-diagram-img" alt="4 titik auskultasi jantung">
+      <img src="assets/GAMBAR TULANG RUSUK Vbesar.png" class="dlcd-diagram-img" alt="4 titik auskultasi jantung">
       ${markers}
     </div>`;
   }
@@ -121,7 +122,7 @@
     let resultHTML;
     const res = D.results[D.cursor];
     if(allDone){
-      resultHTML = `<b style="color:#0E6E4A; font-size:11px;">✓ SELESAI</b><span>Lanjutkan di Web Lokal</span>`;
+      resultHTML = `<b style="color:#0E6E4A;">✓ SELESAI</b><span>Lanjutkan di Web Lokal</span>`;
     } else if(D.state === "recording"){
       resultHTML = `<b style="color:#3A423F;">MEREKAM…</b><span>Jangan gerakkan stetoskop</span>`;
     } else if(D.state === "badsignal"){
@@ -129,10 +130,12 @@
     } else if(res){
       resultHTML = `<b style="color:#007A7A;">✓ TEREKAM</b><span>Lanjut ke titik berikutnya</span>`;
     } else {
-      resultHTML = `<b style="color:#3A423F; font-size:8px;">SIAP MEREKAM</b><span>Tekan PILIH untuk mulai</span>`;
+      resultHTML = `<b style="color:#3A423F; font-size:9px">SIAP MEREKAM</b><span style="font-size:8px">Tekan PILIH untuk mulai</span>`;
     }
 
-    const pointLabel = allDone ? "4/4 TITIK TEREKAM" : `${POINT_CODES[D.cursor]}: ${POINT_NAMES[D.cursor].toUpperCase()}`;
+    const pointLabel = allDone
+      ? `<b>4/4 TITIK TEREKAM</b>`
+      : `<b>${POINT_CODES[D.cursor]}. ${POINT_NAMES[D.cursor].toUpperCase()}</b><br><span class="dlcd-pointdesc">${POINT_DESCS[D.cursor]}</span>`;
 
     el.innerHTML = `
       <div class="dlcd-header"><b>${headerLabel}</b>${battWifi()}</div>
@@ -192,7 +195,7 @@
     D.state = "recording";
     D.recElapsed = 0;
     render();
-    emit("twinkhds:point-start", { index: D.cursor, name: POINT_NAMES[D.cursor], code: POINT_CODES[D.cursor], duration: REC_SECONDS });
+    emit("twinkhds:point-start", { index: D.cursor, name: POINT_NAMES[D.cursor], desc: POINT_DESCS[D.cursor], code: POINT_CODES[D.cursor], duration: REC_SECONDS });
 
     clearInterval(D.recTimer);
     D.recTimer = setInterval(()=>{
@@ -221,7 +224,7 @@
     D.done[D.cursor] = true;
     D.state = "complete";
     render();
-    emit("twinkhds:point-result", { index: D.cursor, name: POINT_NAMES[D.cursor], code: POINT_CODES[D.cursor], murmur, prob });
+    emit("twinkhds:point-result", { index: D.cursor, name: POINT_NAMES[D.cursor], desc: POINT_DESCS[D.cursor], code: POINT_CODES[D.cursor], murmur, prob });
 
     setTimeout(()=>{
       const next = D.done.findIndex(v=>!v);
@@ -246,6 +249,7 @@
         done: D.done.slice(),
         results: D.results.slice(),
         pointNames: POINT_NAMES.slice(),
+        pointDescs: POINT_DESCS.slice(),
         pointCodes: POINT_CODES.slice(),
       };
     }

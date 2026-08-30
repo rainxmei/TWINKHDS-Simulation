@@ -76,7 +76,7 @@ a{color:inherit;}
 .screen-area{
   position:relative;
   width:100%; height:100%;
-  background:var(--bg-app);
+  background:var(--white);
   border-radius:38px;
   overflow:hidden;
   display:flex; flex-direction:column;
@@ -86,7 +86,7 @@ a{color:inherit;}
   height:20px; flex:0 0 auto;
   display:flex; align-items:center; justify-content:space-between;
   padding:0 26px 0 30px; font-size:19.5px; font-weight:600; color:var(--ink-900);
-  background:var(--bg-app); position:relative; z-index:4;
+  background:var(--white); position:relative; z-index:4;
 }
 
 .app-scroll{flex:1 1 auto; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
@@ -188,9 +188,10 @@ a{color:inherit;}
 .history-item.high{border-left-color:var(--red-600);}
 .history-item .num{width:20.5px; height:20.5px; border-radius:50%; background:var(--green-700); color:#fff; font-size:16px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
 .history-item.high .num{background:var(--red-600);}
-.history-item .content{flex:1;}
+.history-item .content{flex:1; min-width:0;}
 .history-item h4{font-size:19.5px; font-weight:700;}
-.history-item p{font-size:17px; color:var(--ink-500); margin-top:1px;}
+.history-item p{font-size:14.5px; color:var(--ink-500); margin-top:1px; white-space:nowrap; letter-spacing:-.01em;}
+.history-time{font-size:12.5px; color:var(--ink-300); flex:0 0 auto; white-space:nowrap; margin-top:2px;}
 .pill{display:inline-flex; align-items:center; gap:4.5px; font-size:17px; font-weight:700; padding:2.5px 7.5px; border-radius:999px; margin-top:5px;}
 .pill-red{background:var(--red-100); color:var(--red-600);}
 .pill-green{background:var(--green-100); color:var(--green-700);}
@@ -242,6 +243,9 @@ a{color:inherit;}
 .point-num{width:20.5px; height:20.5px; border-radius:50%; background:var(--bg-app); color:var(--ink-500); font-size:16px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
 .point-row.done .point-num{background:var(--green-700); color:#fff;}
 .point-name{font-size:18.5px; font-weight:700; flex:1;}
+.point-desc{display:block; font-weight:400; font-size:13.5px; color:var(--ink-400); margin-top:2px;}
+.point-row.active .point-desc{color:rgba(255,255,255,.75);}
+.point-list-compact .point-desc{font-size:11.5px; margin-top:1px;}
 .point-status{font-size:17px; font-weight:700;}
 
 /* AI processing */
@@ -358,7 +362,7 @@ a{color:inherit;}
 .device-lcd{
   position:absolute;
   left:15.9%; top:19.6%; width:55.3%; height:36.3%;
-  background:#EEF1F0;
+  background:#FFFFFF;
   overflow:hidden;
   display:flex; flex-direction:column;
   font-family:var(--font-body);
@@ -412,8 +416,8 @@ a{color:inherit;}
 
 .device-led{
   position:absolute;
-  left:86%; top:34%;
-  width:3.4%; height:6%;
+  left:79%; top:17%;
+  width:3.2%; height:3.2%; min-width:11px; min-height:11px; max-width:16px; max-height:16px;
   transform:translate(-50%,-50%);
   border-radius:50%;
   background:#7a1a1a;
@@ -458,10 +462,10 @@ a{color:inherit;}
 /* ---- LCD inner UI (single-page layout) ---- */
 .dlcd-header{
   display:flex; align-items:center; justify-content:space-between;
-  padding:3% 6% 1%;
+  padding:2% 6% 0.5%;
   flex:0 0 auto;
 }
-.dlcd-header b{font-size:18.5px; font-weight:800; color:#151A18; letter-spacing:-.01em;}
+.dlcd-header b{font-size:11.5px; font-weight:700; color:#6B746F; letter-spacing:-.005em;}
 .dlcd-status{display:flex; align-items:center; gap:4px;}
 .dlcd-batt{display:flex; gap:1.3px; align-items:center;}
 .dlcd-batt i{width:3.2px; height:6.5px; background:#4CC3C3; border-radius:1px; display:block;}
@@ -474,16 +478,16 @@ a{color:inherit;}
 .dlcd-bar-row b{font-size:13px; font-weight:800; color:#151A18; white-space:nowrap;}
 
 .dlcd-body{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 3%; min-height:0;}
-.dlcd-diagram-wrap{position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;}
-.dlcd-diagram-img{width:auto; height:100%; max-width:100%; object-fit:contain; display:block; pointer-events:none; border-radius:3px;}
+.dlcd-diagram-wrap{position:relative; height:100%; max-width:100%; aspect-ratio:1512/720; margin:0 auto;}
+.dlcd-diagram-img{width:100%; height:100%; object-fit:fill; display:block; pointer-events:none; border-radius:3px;}
 .dlcd-marker{
   position:absolute; transform:translate(-50%,-50%);
-  width:11%; height:11%; min-width:14px; min-height:14px;
+  width:16px; height:16px;
   border-radius:50%;
   border:1.6px solid #9AA39D;
   background:rgba(255,255,255,.55);
   display:flex; align-items:center; justify-content:center;
-  font-size:8.5px; font-weight:800; color:#3A423F; font-family:Poppins, sans-serif;
+  font-size:8px; font-weight:800; color:#3A423F; font-family:Poppins, sans-serif;
   transition:border-color .15s ease, background .15s ease, box-shadow .15s ease;
 }
 .dlcd-marker.marker-done{background:#007A7A; border-color:#007A7A; color:#fff;}
@@ -496,10 +500,11 @@ a{color:inherit;}
   flex:0 0 auto; display:flex; align-items:flex-end; justify-content:space-between;
   padding:1% 6% 3%; gap:6px;
 }
-.dlcd-result{display:flex; flex-direction:column; align-items:flex-start;}
-.dlcd-result b{font-size:15px; font-weight:800; letter-spacing:.01em; line-height:1.15;}
-.dlcd-result span{font-size:12px; color:#5B6460; margin-top:1px;}
-.dlcd-pointname{font-size:12px; font-weight:700; color:#3A423F; text-align:right; max-width:44%; line-height:1.3;}
+.dlcd-result{display:flex; flex-direction:column; align-items:flex-start; max-width:34%;}
+.dlcd-result b{font-size:11.5px; font-weight:800; letter-spacing:.005em; line-height:1.2;}
+.dlcd-result span{font-size:9px; color:#5B6460; margin-top:1px; line-height:1.25;}
+.dlcd-pointname{font-size:13.5px; font-weight:700; color:#3A423F; text-align:right; max-width:64%; line-height:1.3; white-space:nowrap;}
+.dlcd-pointdesc{font-weight:400; font-size:10.5px; color:#6B746F; white-space:nowrap; display:block;}
 
 .dlcd-gate{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:0 8%; gap:3px;}
 .dlcd-gate svg{width:20px; height:20px; color:#9AA39D; margin-bottom:2px;}
@@ -522,6 +527,24 @@ a{color:inherit;}
 
 /* radio-style options (Ya/Tidak) */
 .seg-radio{display:flex; flex-direction:column; gap:8px;}
+/* Toggle satuan usia: Hari / Bulan / Tahun */
+.seg-unit{display:flex; gap:6px;}
+.seg-unit button{flex:1; border:1.5px solid var(--border); background:#fff; border-radius:var(--radius-sm); padding:8px 6px; font-size:14.5px; font-weight:600; color:var(--ink-700); text-align:center; transition:border-color .15s ease, background .15s ease, color .15s ease;}
+.seg-unit button.selected{background:var(--green-700); border-color:var(--green-700); color:#fff;}
+.seg-gender{display:flex; flex-direction:row; gap:9px;}
+.seg-gender button{
+  flex:1; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:7px;
+  border:1.5px solid var(--border); background:#fff; border-radius:var(--radius-sm);
+  padding:12px 10px; color:var(--ink-700); font-size:16.5px; font-weight:600;
+  transition:border-color .15s ease, background .15s ease, color .15s ease;
+}
+.seg-gender button .gender-icon{width:18px; height:18px; flex:0 0 auto; color:var(--ink-500);}
+.seg-gender button.selected{border-color:var(--green-700); background:var(--green-050); color:var(--green-800);}
+.seg-gender button.selected .gender-icon{color:var(--green-700);}
+/* Sembunyikan tombol naik/turun pada input angka */
+.no-spin input[type=number]::-webkit-outer-spin-button,
+.no-spin input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+.no-spin input[type=number]{-moz-appearance:textfield; appearance:textfield;}
 .seg-radio button{border:1.5px solid var(--border); background:#fff; border-radius:var(--radius-sm); padding:11px 13px; display:flex; align-items:center; justify-content:flex-start; gap:11px;}
 .seg-radio button .dot{width:17px; height:17px; border-radius:50%; border:2px solid var(--ink-300); flex:0 0 auto; position:relative; display:block;}
 .seg-radio button.selected .dot{border-color:#fff;}

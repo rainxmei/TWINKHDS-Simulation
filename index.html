@@ -51,7 +51,7 @@
                     <img src="assets/logo-icon.svg" alt="TWINKHDS" class="logo-img">
                   </div>
                   <h2>Mulai Pemeriksaan Baru</h2>
-                  <p>Sambungkan dengan perangkat fisik TWINKHDS untuk memulai deteksi dini kelainan jantung anak secara real-time, 100% offline.</p>
+                  <p>Sambungkan dengan perangkat fisik TWINKHDS untuk memulai deteksi dini kelainan jantung anak secara real-time.</p>
                   <button class="btn" data-nav="input-pasien">Mulai Sekarang
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                   </button>
@@ -81,7 +81,8 @@
                 <button class="icon-btn" data-nav="beranda" aria-label="Kembali">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
                 </button>
-                <span class="brand-name" style="font-size:15px;">Pemeriksaan Awal</span>
+                <div class="brand-mark"><img src="assets/logo-icon.svg" alt="TWINKHDS" class="logo-img"></div>
+                <span class="brand-name">TWINKHDS</span>
                 <div class="header-side">
                   
                 </div>
@@ -99,38 +100,43 @@
                   </div>
                   <div class="field">
                     <label>Usia</label>
-                    <div class="unit-input">
-                      <input type="number" id="pAge" placeholder="0" min="0" max="18">
-                      <span>Tahun</span>
+                    <div class="seg seg-unit" id="pAgeUnit" style="margin-bottom:8px;">
+                      <button data-val="hari">Hari</button>
+                      <button data-val="bulan">Bulan</button>
+                      <button data-val="tahun" class="selected">Tahun</button>
                     </div>
-                  </div>
-                </div>
-
-                <div class="card">
-                  <div class="card-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3h6l1 4H8l1-4z"/><path d="M6 7h12l1 13a1 1 0 01-1 1H6a1 1 0 01-1-1L6 7z"/></svg>
-                    Data Tambahan
+                    <div class="unit-input no-spin">
+                      <input type="number" id="pAge" placeholder="Contoh: 5" min="0">
+                      <span id="pAgeUnitLabel">Tahun</span>
+                    </div>
+                    <p id="pAgeError" style="display:none; color:var(--red-600); font-size:12.5px; margin-top:6px; line-height:1.4;"></p>
                   </div>
                   <div class="field">
                     <label>Jenis Kelamin</label>
-                    <div class="seg seg-radio" id="pGender">
-                      <button data-val="L"><i class="dot"></i><span><b>Laki-laki</b></span></button>
-                      <button data-val="P"><i class="dot"></i><span><b>Perempuan</b></span></button>
+                    <div class="seg seg-gender" id="pGender">
+                      <button data-val="L">
+                        <svg class="gender-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="5"/><path d="M19 5l-5.4 5.4M19 5h-4M19 5v4"/></svg>
+                        <span>Laki-laki</span>
+                      </button>
+                      <button data-val="P">
+                        <svg class="gender-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="M12 14v7M9 18h6"/></svg>
+                        <span>Perempuan</span>
+                      </button>
                     </div>
                   </div>
                   <div class="field">
                     <label>Berat Badan</label>
-                    <div class="unit-input"><input type="number" id="pWeight" step="0.1" placeholder="Contoh: 15.2"><span>kg</span></div>
+                    <div class="unit-input no-spin"><input type="number" id="pWeight" step="0.1" placeholder="Contoh: 15.2"><span>Kg</span></div>
                   </div>
                   <div class="field">
                     <label>Tinggi Badan</label>
-                    <div class="unit-input"><input type="number" id="pHeight" placeholder="Contoh: 95"><span>cm</span></div>
+                    <div class="unit-input no-spin"><input type="number" id="pHeight" placeholder="Contoh: 95"><span>Cm</span></div>
                   </div>
                 </div>
 
               </div>
               <div style="padding:0 18px 18px;">
-                <button class="btn btn-primary" id="btnLanjutEvaluasi" disabled>Lanjutkan Evaluasi
+                <button class="btn btn-primary" id="btnLanjutEvaluasi" disabled>Lihat Panduan Auskultasi
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                 </button>
               </div>
@@ -145,7 +151,8 @@
                 <button class="icon-btn" data-nav="input-pasien" aria-label="Kembali">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
                 </button>
-                <span class="brand-name" style="font-size:15px;">Panduan Auskultasi</span>
+                <div class="brand-mark"><img src="assets/logo-icon.svg" alt="TWINKHDS" class="logo-img"></div>
+                <span class="brand-name">TWINKHDS</span>
                 <div class="header-side"></div>
                 <!-- <div class="header-side"><div class="avatar-circle">CP</div></div> -->
               </header>
@@ -153,13 +160,7 @@
                 <div class="h1">Panduan Auskultasi</div>
 
                 <div class="body-diagram">
-                  <img src="assets/auskultasi-4titik.jpg" alt="4 titik auskultasi jantung: Aortic, Pulmonal, Trikuspid, Mitral" style="width:100%; border-radius:12px; display:block;">
-                  <div class="diagram-row" style="margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:10px 12px;">
-                    <p style="margin:0; font-size:16.5px; line-height:1.35;"><b>1. Aortic</b><br>Sela iga ke-2 kanan</p>
-                    <p style="margin:0; font-size:16.5px; line-height:1.35;"><b>2. Pulmonal</b><br>Sela iga ke-2 kiri</p>
-                    <p style="margin:0; font-size:16.5px; line-height:1.35;"><b>3. Trikuspid</b><br>Sela iga ke-4 kiri</p>
-                    <p style="margin:0; font-size:16.5px; line-height:1.35;"><b>4. Mitral</b><br>Apeks jantung</p>
-                  </div>
+                  <img src="assets/auskultasi-4titik.png" alt="4 titik auskultasi jantung: Aorta, Pulmonal, Trikuspid, Mitral" style="width:100%; border-radius:12px; display:block;">
                 </div>
 
                 <div class="card">
@@ -169,16 +170,20 @@
                   </div>
                   <div class="protocol-step">
                     <div class="protocol-num">1</div>
-                    <div><h4>Posisi Pasien</h4><p>Pastikan pasien duduk tegak dan tenang. Area dada dapat diakses dengan mudah untuk keempat titik auskultasi.</p></div>
+                    <div><h4>Posisi Pasien</h4><p>Posisikan pasien berbaring terlentang dan tenang. Area dada dapat diakses dengan mudah.</p></div>
                   </div>
                   <div class="protocol-step">
                     <div class="protocol-num">2</div>
-                    <div><h4>Lingkungan Tenang</h4><p>Kurangi kebisingan di sekitar ruangan agar kualitas rekaman optimal. Setiap titik direkam 15 detik; jika SQI (Signal Quality Index) gagal, alat akan mengulang otomatis.</p></div>
+                    <div><h4>Lingkungan Tenang</h4><p>Kurangi kebisingan di sekitar ruangan untuk memastikan kualitas rekaman auskultasi optimal.</p></div>
+                  </div>
+                  <div class="protocol-step">
+                    <div class="protocol-num">3</div>
+                    <div><h4>Kontak Stetoskop</h4><p>Tempelkan kepala stetoskop langsung ke kulit dada untuk hasil optimal. Kontak melalui kain tipis masih dapat diterima bila diperlukan, namun hindari lapisan kain tebal.</p></div>
                   </div>
                 </div>
               </div>
               <div style="padding:0 18px 18px;">
-                <button class="btn btn-primary" data-nav="proses-auskultasi">Lanjutkan ke Auskultasi
+                <button class="btn btn-primary" data-nav="proses-auskultasi">Mulai Auskultasi
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                 </button>
               </div>
@@ -193,7 +198,8 @@
                 <button class="icon-btn" data-nav="panduan-auskultasi" aria-label="Kembali">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
                 </button>
-                <span class="brand-name" style="font-size:15px;">Rekam 4 Titik</span>
+                <div class="brand-mark"><img src="assets/logo-icon.svg" alt="TWINKHDS" class="logo-img"></div>
+                <span class="brand-name">TWINKHDS</span>
                 <div class="header-side"></div>
               </header>
               <div class="screen-body">
@@ -212,7 +218,7 @@
                 <div class="point-list" id="pointList"></div>
               </div>
               <div style="padding:0 18px 18px;">
-                <button class="btn btn-primary" id="btnLanjutAuskultasi" disabled>Lanjutkan ke Analisis AI
+                <button class="btn btn-primary" id="btnLanjutAuskultasi" disabled>Mulai Analisis Kondisi Jantung
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                 </button>
               </div>
@@ -260,7 +266,8 @@
                 <button class="icon-btn" data-nav="proses-auskultasi" aria-label="Kembali">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
                 </button>
-                <span class="brand-name" style="font-size:15px;">Hasil Pemeriksaan</span>
+                <div class="brand-mark"><img src="assets/logo-icon.svg" alt="TWINKHDS" class="logo-img"></div>
+                <span class="brand-name">TWINKHDS</span>
                 <div class="header-side"></div>
               </header>
               <div class="screen-body" style="padding-top:12px;">
@@ -274,7 +281,7 @@
                 <div class="card" style="margin-bottom:10px; padding:12px;">
                   <div class="card-title" style="margin-bottom:6px;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
-                    Hasil Auskultasi 4 Titik (A/P/T/M)
+                    Hasil Auskultasi 4 Titik
                   </div>
                   <div id="resultPointList" class="point-list point-list-compact"></div>
                 </div>
@@ -289,7 +296,7 @@
                 </div>
               </div>
               <div style="padding:0 18px 18px;">
-                <button class="btn btn-primary" data-nav="penjelasan-ai">Lihat Penjelasan AI
+                <button class="btn btn-primary" data-nav="penjelasan-ai">Lihat Penjelasan
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                 </button>
               </div>
@@ -304,19 +311,13 @@
                 <button class="icon-btn" data-nav="hasil-skrining" aria-label="Kembali">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
                 </button>
-                <span class="brand-name" style="font-size:15px;">Penjelasan AI</span>
+                <div class="brand-mark"><img src="assets/logo-icon.svg" alt="TWINKHDS" class="logo-img"></div>
+                <span class="brand-name">TWINKHDS</span>
                 <div class="header-side"></div>
               </header>
               <div class="screen-body">
-                <div class="h1" style="font-size:18px;">Penjelasan AI</div>
-                <p class="subtext">Tinjauan faktor klinis yang mendasari hasil deteksi risiko</p>
-
-                <div class="alert alert-red" id="aiConclusionBox">
-                  <div>
-                    <h3>Kesimpulan</h3>
-                    <p id="aiConclusionText">Memuat kesimpulan...</p>
-                  </div>
-                </div>
+                <div class="h1" style="font-size:24px;">Penjelasan</div>
+                <p class="subtext">Tinjauan faktor klinis yang mendasari hasil deteksi dini.</p>
 
                 <div class="card" style="background:transparent; border:none; box-shadow:none; padding:0;">
                   <div class="card-title" style="padding:0 2px;">
@@ -334,7 +335,7 @@
                 </div>
               </div>
               <div style="padding:0 18px 18px;">
-                <button class="btn btn-primary" data-nav="faktor-risiko">Lihat Analisis Faktor Risiko
+                <button class="btn btn-primary" data-nav="faktor-risiko">Lihat Kontribusi Parameter
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                 </button>
               </div>
@@ -349,20 +350,35 @@
                 <button class="icon-btn" data-nav="penjelasan-ai" aria-label="Kembali">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
                 </button>
-                <span class="brand-name" style="font-size:15px;">Kontribusi Parameter</span>
+                <div class="brand-mark"><img src="assets/logo-icon.svg" alt="TWINKHDS" class="logo-img"></div>
+                <span class="brand-name">TWINKHDS</span>
                 <div class="header-side"></div>
               </header>
               <div class="screen-body">
-                <div class="h1" id="whyTitle" style="font-size:18px;">Kontribusi Parameter</div>
-                <p class="subtext">Faktor-faktor di bawah ini paling berkontribusi terhadap klasifikasi Model 2 (Logistic Regression), dijelaskan melalui Odds Ratio &amp; LinearSHAP.</p>
+                <div class="h1" id="whyTitle" style="font-size:18px;">Mengapa Terdeteksi Abnormal?</div>
+                <p class="subtext">Faktor-faktor di bawah ini paling berkontribusi terhadap klasifikasi Model 2 (Logistic Regression).</p>
+
+                <div class="legend-row" style="padding:0 2px; margin-bottom:8px;">
+                  <div class="legend-dot"><i style="background:var(--red-600)"></i>Mendorong ke Abnormal</div>
+                  <div class="legend-dot"><i style="background:var(--green-600)"></i>Mendorong ke Normal</div>
+                </div>
 
                 <div class="card">
-                  <div class="legend-row">
-                    <div class="legend-dot"><i style="background:var(--red-600)"></i>Mendorong ke Abnormal</div>
-                    <div class="legend-dot"><i style="background:var(--green-600)"></i>Mendorong ke Normal</div>
+                  <div class="card-title" style="margin-bottom:2px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+                    LinearSHAP
                   </div>
-                  <p style="font-size:12px; color:var(--ink-500); margin:2px 0 10px; line-height:1.5;"><b>OR (Odds Ratio)</b>: kelipatan rasio kemungkinan Abnormal untuk tim internal. <b>SHAP (LinearSHAP)</b>: besar &amp; arah kontribusi tiap faktor, ditampilkan untuk nakes agar hasil lebih mudah dipahami.</p>
-                  <div id="factorBars"></div>
+                  <p style="font-size:12px; color:var(--ink-500); margin:2px 0 10px; line-height:1.5;">Besar &amp; arah kontribusi tiap faktor, ditampilkan untuk nakes agar hasil lebih mudah dipahami.</p>
+                  <div id="factorBarsSHAP"></div>
+                </div>
+
+                <div class="card">
+                  <div class="card-title" style="margin-bottom:2px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+                    Odds Ratio
+                  </div>
+                  <p style="font-size:12px; color:var(--ink-500); margin:2px 0 10px; line-height:1.5;">Kelipatan rasio kemungkinan Abnormal untuk setiap faktor, dipakai tim internal.</p>
+                  <div id="factorBarsOR"></div>
                   <div class="confidence-row">
                     <span>Tingkat Kepercayaan AI</span>
                     <b id="confidenceVal">94.2%</b>
