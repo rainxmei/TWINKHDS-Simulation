@@ -138,7 +138,7 @@
     } else {
       // LCD sengaja tidak menampilkan apakah stetoskop sedang menempel atau tidak.
       // Pada alat nyata, posisi fisik stetoskop tidak bisa diketahui hanya dari UI ini.
-      resultHTML = `<b style="color:#3A423F;">SIAP MEREKAM</b><span>Tempatkan stetoskop, lalu tekan PILIH</span>`;
+      resultHTML = `<b style="color:#3A423F;">SIAP MEREKAM</b><span class="dlcd-ready-note">Tempatkan stetoskop,<br>lalu tekan PILIH</span>`;
     }
 
     const pointLabel = allDone

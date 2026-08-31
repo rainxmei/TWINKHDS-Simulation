@@ -5,9 +5,7 @@
 
 *{box-sizing:border-box; margin:0; padding:0;}
 html,body{height:100%; overflow:hidden;}
-body{font-family:var(--font-body); color:var(--ink-900); background: 
-    /* radial-gradient(1200px 600px at 12% -10%, #123B2C 0%, #0B2A20 45%, #081D17 100%); height:100vh; -webkit-font-smoothing:antialiased;} */
-    radial-gradient(1200px 600px at 12% -10%, #123B3B 0%, #0B2A2A 45%, #081D1D 100%); height:100vh; -webkit-font-smoothing:antialiased;}
+body{font-family:var(--font-body); color:var(--ink-900); background:#E6F4F4; height:100vh; -webkit-font-smoothing:antialiased;}
 
 button{font-family:inherit; cursor:pointer;}
 a{color:inherit;}
@@ -52,7 +50,7 @@ a{color:inherit;}
   writing-mode:vertical-rl;
   text-orientation:mixed;
   white-space:nowrap;
-  color:#CFF3F3;
+  color:#007A7A;
   font-family:var(--font-body);
   font-size:18.5px;
   font-weight:700;
@@ -374,13 +372,14 @@ a{color:inherit;}
 }
 .diagram-stage{
   position:relative;
-  width:520px;
+  width:360px;
   flex:0 0 auto;
   user-select:none;
 }
 .diagram-caption{
-  font-family:var(--font-body); font-size:15px; font-weight:600; color:#CFF3F3;
-  margin-bottom:9px; display:flex; align-items:center; gap:6px;
+  font-family:var(--font-body); font-size:18.5px; font-weight:600; color:#007A7A;
+  margin-bottom:9px; display:flex; align-items:center; justify-content:center; text-align:center; gap:6px;
+  width:100%;
 }
 .diagram-frame{
   position:relative;
@@ -503,9 +502,9 @@ a{color:inherit;}
 
 .device-caption{
   display:flex; align-items:flex-start; gap:8px;
-  color:#A8E8E8; font-size:18.5px; font-weight:600; text-align:left; width:480px; line-height:1.5;
+  color:#007A7A; font-size:18.5px; font-weight:600; text-align:left; width:480px; line-height:1.5; margin-bottom:-40px;
 }
-.device-caption b{color:#CFF3F3; font-weight:700;}
+.device-caption b{color:#007A7A; font-weight:700;}
 .device-caption svg{flex:0 0 auto; opacity:.85; margin-top:1px;}
 
 .device-disclaimer{
@@ -518,9 +517,10 @@ a{color:inherit;}
      sempit) supaya teksnya memanjang ke kanan sesuai referensi, bukan
      menumpuk jadi banyak baris pendek. */
   width:520px;
-  font-size:16px;
-  line-height:1.55;
-  color:#7FA3A0 ;
+  font-size:18.5px;
+  font-style:italic;
+  line-height:1.5;
+  color:#007A7A;
   text-align:left;
   padding-top:8px;
   border-top:1px solid rgba(0,97,97,.15);
@@ -567,10 +567,11 @@ a{color:inherit;}
   flex:0 0 auto; display:flex; align-items:flex-end; justify-content:space-between;
   padding:1% 6% 3%; gap:6px;
 }
-.dlcd-result{display:flex; flex-direction:column; align-items:flex-start; max-width:34%;}
+.dlcd-result{display:flex; flex-direction:column; align-items:flex-start; max-width:46%;}
 .dlcd-result b{font-size:11.5px; font-weight:800; letter-spacing:.005em; line-height:1.2;}
 .dlcd-result span{font-size:9px; color:#5B6460; margin-top:1px; line-height:1.25;}
-.dlcd-pointname{font-size:13.5px; font-weight:700; color:#3A423F; text-align:right; max-width:64%; line-height:1.3; white-space:nowrap;}
+.dlcd-ready-note{white-space:nowrap;}
+.dlcd-pointname{font-size:13.5px; font-weight:700; color:#3A423F; text-align:right; max-width:52%; line-height:1.3; white-space:nowrap;}
 .dlcd-pointdesc{font-weight:400; font-size:10.5px; color:#6B746F; white-space:nowrap; display:block;}
 
 .dlcd-gate{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:0 8%; gap:3px;}
