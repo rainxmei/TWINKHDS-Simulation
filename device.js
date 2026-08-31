@@ -20,7 +20,7 @@
     "Apeks jantung",
   ];
   const POINT_CODES = ["A","P","T","M"];
-  // Posisi titik (dalam %) mengikuti lokasi lingkaran nomor pada gambar baru
+  // Posisi titik (dalam %) mengikuti lokasi lingkaran nomor pada gambar LCD (versi berlabel)
   const POINT_XY = [
     { x:43.85, y:36.60 },
     { x:55.84, y:36.62 },
@@ -38,6 +38,10 @@
     recElapsed: 0,
     recTimer: null,
     phoneReady: false, // true only when phone/HP is on the "proses-auskultasi" screen
+    probeAttached: false, // hanya dipakai internal simulasi; tidak ditampilkan sebagai status di LCD
+    recordingHadContact: false, // snapshot kondisi probe saat tombol PILIH memulai rekaman
+    lastWeakSignal: false, // menyimpan hasil sinyal lemah sampai pengguna memulai/memilih rekaman lain
+    weakSignalIndex: null,
   };
 
   const $ = (sel) => document.querySelector(sel);
@@ -68,7 +72,7 @@
       return `<div class="${ringClass}" style="left:${pt.x}%; top:${pt.y}%;"><span>${POINT_CODES[i]}</span></div>`;
     }).join("");
     return `<div class="dlcd-diagram-wrap">
-      <img src="assets/auskultasi-4titik.png" class="dlcd-diagram-img" alt="4 titik auskultasi jantung">
+      <img src="assets/auskultasi-lcd.png" class="dlcd-diagram-img" alt="4 titik auskultasi jantung">
       ${markers}
     </div>`;
   }
@@ -129,8 +133,12 @@
       resultHTML = `<b style="color:#C98A00;">SINYAL LEMAH</b><span>Sinyal lemah, mengulang…</span>`;
     } else if(res){
       resultHTML = `<b style="color:#007A7A;">✓ TEREKAM</b><span>Lanjut ke titik berikutnya</span>`;
+    } else if(D.lastWeakSignal && D.weakSignalIndex === D.cursor){
+      resultHTML = `<b style="color:#C98A00;">SINYAL LEMAH</b><span>Ulangi rekaman titik ini</span>`;
     } else {
-      resultHTML = `<b style="color:#3A423F;">SIAP MEREKAM</b><span>Tekan PILIH untuk mulai</span>`;
+      // LCD sengaja tidak menampilkan apakah stetoskop sedang menempel atau tidak.
+      // Pada alat nyata, posisi fisik stetoskop tidak bisa diketahui hanya dari UI ini.
+      resultHTML = `<b style="color:#3A423F;">SIAP MEREKAM</b><span>Tempatkan stetoskop, lalu tekan PILIH</span>`;
     }
 
     const pointLabel = allDone
@@ -167,17 +175,25 @@
     if(!D.phoneReady){ flashDenied(); return; }
     if(D.state !== "idle") return;
     D.cursor = (D.cursor + 3) % 4;
+    D.lastWeakSignal = false;
+    D.weakSignalIndex = null;
+    if(D.probeAttached){ D.probeAttached = false; resetProbePosition(true); }
     render();
   }
   function pressKanan(){
     if(!D.phoneReady){ flashDenied(); return; }
     if(D.state !== "idle") return;
     D.cursor = (D.cursor + 1) % 4;
+    D.lastWeakSignal = false;
+    D.weakSignalIndex = null;
+    if(D.probeAttached){ D.probeAttached = false; resetProbePosition(true); }
     render();
   }
   function pressPilih(){
     if(!D.phoneReady){ flashDenied(); return; }
     if(D.state === "idle"){
+      // Rekaman SELALU dimulai saat tombol PILIH ditekan.
+      // Ada/tidaknya kontak stetoskop baru dinilai setelah durasi rekaman selesai.
       startRecording();
       return;
     }
@@ -187,6 +203,9 @@
 
   function startRecording(){
     D.state = "recording";
+    D.recordingHadContact = D.probeAttached;
+    D.lastWeakSignal = false;
+    D.weakSignalIndex = null;
     D.recElapsed = 0;
     render();
     emit("twinkhds:point-start", { index: D.cursor, name: POINT_NAMES[D.cursor], desc: POINT_DESCS[D.cursor], code: POINT_CODES[D.cursor], duration: REC_SECONDS });
@@ -204,12 +223,30 @@
   }
 
   function finishRecording(){
-    const badSignal = Math.random() < BAD_SIGNAL_CHANCE;
+    // Jika rekaman dimulai tanpa kontak stetoskop ke titik auskultasi,
+    // alat tetap menyelesaikan durasi rekaman terlebih dahulu. Baru setelah itu
+    // hasil kualitas sinyal dinyatakan lemah.
+    const noHeartSignal = !D.recordingHadContact;
+    const badSignal = noHeartSignal || Math.random() < BAD_SIGNAL_CHANCE;
     if(badSignal){
       D.state = "badsignal";
       render();
-      emit("twinkhds:signal-warning", { index: D.cursor });
-      setTimeout(()=>{ startRecording(); }, 1500);
+      emit("twinkhds:signal-warning", { index: D.cursor, noProbe: noHeartSignal });
+
+      if(noHeartSignal){
+        // Jangan auto-retry saat tidak ada sinyal jantung: pengguna perlu
+        // menempatkan stetoskop lalu menekan PILIH lagi. Status lemah tetap
+        // terlihat, tetapi kontrol kembali aktif setelah jeda singkat.
+        setTimeout(()=>{
+          D.state = "idle";
+          D.lastWeakSignal = true;
+          D.weakSignalIndex = D.cursor;
+          render();
+        }, 900);
+      } else {
+        // Gangguan SQI acak saat kontak sudah benar tetap mengulang otomatis.
+        setTimeout(()=>{ startRecording(); }, 1500);
+      }
       return;
     }
 
@@ -217,6 +254,7 @@
     D.results[D.cursor] = { murmur, prob };
     D.done[D.cursor] = true;
     D.state = "complete";
+    D.probeAttached = false;
     render();
     resetProbePosition(true);
     emit("twinkhds:point-result", { index: D.cursor, name: POINT_NAMES[D.cursor], desc: POINT_DESCS[D.cursor], code: POINT_CODES[D.cursor], murmur, prob });
@@ -295,7 +333,7 @@
     const stageR = stage.getBoundingClientRect();
     const portR = port.getBoundingClientRect();
     const x = (portR.left - stageR.left)/s - 4;
-    const y = (portR.top - stageR.top)/s + 10;
+    const y = (portR.top - stageR.top)/s - 25;
     probe.style.left = x + "px";
     probe.style.top = y + "px";
     if(animate){
@@ -324,8 +362,10 @@
   function dropOnPoint(idx){
     if(!D.phoneReady || D.state !== "idle") return;
     D.cursor = idx;
+    D.probeAttached = true;
+    D.lastWeakSignal = false;
+    D.weakSignalIndex = null;
     render();
-    startRecording();
   }
 
   function bindProbeDrag(){
@@ -334,6 +374,8 @@
     probe.addEventListener("pointerdown", (e)=>{
       if(!D.phoneReady || D.state !== "idle"){ flashDenied(); return; }
       dragging = true;
+      D.probeAttached = false;
+      render();
       probe.classList.remove("snap-transition");
       probe.setPointerCapture(e.pointerId);
       const s = scaleFactor();
@@ -377,6 +419,8 @@
         pointNames: POINT_NAMES.slice(),
         pointDescs: POINT_DESCS.slice(),
         pointCodes: POINT_CODES.slice(),
+        lastWeakSignal: D.lastWeakSignal,
+        weakSignalIndex: D.weakSignalIndex,
       };
     }
   };

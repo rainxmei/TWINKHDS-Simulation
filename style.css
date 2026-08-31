@@ -38,8 +38,28 @@ a{color:inherit;}
    secara proporsional, jadi mustahil gepeng.
    ========================================================= */
 .phone-wrap{
+  position:relative;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
   flex:0 0 auto;
+  /* Ruang khusus untuk label vertikal di sisi kiri HP. */
+  padding-left:38px;
+}
+.phone-caption-vertical{
+  position:absolute;
+  left:8px;
+  top:50%;
+  transform:translateY(-50%) rotate(180deg);
+  writing-mode:vertical-rl;
+  text-orientation:mixed;
+  white-space:nowrap;
+  color:#CFF3F3;
+  font-family:var(--font-body);
+  font-size:18.5px;
+  font-weight:700;
+  line-height:1;
+  letter-spacing:.025em;
+  user-select:none;
+  pointer-events:none;
 }
 .phone{
   position:relative;
@@ -354,7 +374,7 @@ a{color:inherit;}
 }
 .diagram-stage{
   position:relative;
-  width:340px;
+  width:520px;
   flex:0 0 auto;
   user-select:none;
 }
@@ -364,12 +384,8 @@ a{color:inherit;}
 }
 .diagram-frame{
   position:relative;
-  border-radius:16px;
-  overflow:hidden;
-  box-shadow:var(--shadow-float);
-  background:#fff;
 }
-.diagram-img{width:100%; height:auto; display:block; pointer-events:none;}
+.diagram-img{width:100%; height:auto; display:block; pointer-events:none; filter:drop-shadow(0 14px 26px rgba(0,0,0,.4));}
 .point-layer{position:absolute; inset:0;}
 .point{
   position:absolute; width:30px; height:30px; margin:-15px 0 0 -15px;

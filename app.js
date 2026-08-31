@@ -252,7 +252,7 @@
     $("#pointList").innerHTML = POINTS.map((p,i)=>{
       const done = state.points[i];
       let cls = "point-row";
-      if(i===activeIdx && (mode==="recording"||mode==="badsignal")) cls+=" active"; else if(done) cls+=" done";
+      if(i===activeIdx && (mode==="recording"||mode==="badsignal"||mode==="weak")) cls+=" active"; else if(done) cls+=" done";
       let statusHtml = "";
       if(done){
         statusHtml = `<span class="point-status pill-tag tag-normal">✓ Terekam</span>`;
@@ -260,6 +260,8 @@
         statusHtml = `<span class="point-status" style="color:var(--green-700)">Merekam…</span>`;
       } else if(i===activeIdx && mode==="badsignal"){
         statusHtml = `<span class="point-status pill-tag tag-wheeze">Sinyal Lemah, Mengulang</span>`;
+      } else if(i===activeIdx && mode==="weak"){
+        statusHtml = `<span class="point-status pill-tag tag-wheeze">Sinyal Lemah, Ulangi</span>`;
       }
       return `<div class="${cls}"><div class="point-num">${p.code}</div><div class="point-name"><b style="text-transform:uppercase;">${p.name}</b><span class="point-desc">${p.desc}</span></div>${statusHtml}</div>`;
     }).join("");
@@ -286,21 +288,30 @@
       if(snap.state === "recording"){
         $("#activePointLabel").textContent = `Titik Aktif: ${snap.pointNames[snap.cursor]} (${snap.pointDescs[snap.cursor].toLowerCase()})`;
         renderPointList(snap.cursor, "recording");
+        setTimerDisplay(0, "00:00 / 00:15");
       } else if(snap.state === "badsignal"){
-        $("#activePointLabel").textContent = `⚠ Sinyal Lemah, Mengulang Titik ${snap.pointNames[snap.cursor]}`;
+        $("#activePointLabel").textContent = `⚠ Sinyal Lemah pada Titik ${snap.pointNames[snap.cursor]}`;
         renderPointList(snap.cursor, "badsignal");
+        setTimerDisplay(1, "00:15 / 00:15");
+      } else if(snap.lastWeakSignal && snap.weakSignalIndex !== null){
+        const i = snap.weakSignalIndex;
+        $("#activePointLabel").textContent = `⚠ Sinyal Lemah pada Titik ${snap.pointNames[i]} — silakan ulangi rekaman`;
+        renderPointList(i, "weak");
+        setTimerDisplay(1, "00:15 / 00:15");
       } else if(snap.state === "allDone"){
         $("#activePointLabel").textContent = "✓ 4 Titik Selesai Direkam";
         renderPointList(-1, "waiting");
+        setTimerDisplay(1, "00:15 / 00:15");
       } else {
         $("#activePointLabel").textContent = "Menunggu perangkat mulai merekam…";
         renderPointList(-1, "waiting");
+        setTimerDisplay(0, "00:00 / 00:15");
       }
     } else {
       $("#activePointLabel").textContent = "Menunggu perangkat mulai merekam…";
       renderPointList(-1, "waiting");
+      setTimerDisplay(0, "00:00 / 00:15");
     }
-    setTimerDisplay(0, "00:00 / 00:15");
   }
 
   let phoneAusTimer = null;
@@ -325,9 +336,17 @@
     if(!isScreenVisible("proses-auskultasi")) return;
     clearInterval(phoneAusTimer);
     const snap = window.TwinkhdsDevice.getSnapshot();
-    $("#activePointLabel").textContent = `⚠ Sinyal Lemah, Mengulang Titik ${snap.pointNames[e.detail.index]}`;
-    setTimerDisplay(1, "Mengulang…");
-    renderPointList(e.detail.index, "badsignal");
+    if(e.detail.noProbe){
+      // Jangan menulis "stetoskop belum ditempatkan" karena perangkat nyata
+      // hanya mengetahui kualitas sinyal rekaman, bukan posisi fisik stetoskop.
+      $("#activePointLabel").textContent = `⚠ Sinyal Lemah pada Titik ${snap.pointNames[e.detail.index]} — silakan ulangi rekaman`;
+      setTimerDisplay(1, "00:15 / 00:15");
+      renderPointList(e.detail.index, "weak");
+    } else {
+      $("#activePointLabel").textContent = `⚠ Sinyal Lemah, Mengulang Titik ${snap.pointNames[e.detail.index]}`;
+      setTimerDisplay(1, "Mengulang…");
+      renderPointList(e.detail.index, "badsignal");
+    }
   });
 
   document.addEventListener("twinkhds:point-result", (e)=>{
