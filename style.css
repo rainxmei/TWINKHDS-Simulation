@@ -368,8 +368,21 @@ a{color:inherit;}
 }
 .device-diagram-row{
   position:relative;
-  display:flex; flex-direction:row; align-items:center; gap:34px;
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  gap:34px;
 }
+.device-column{
+  width:480px;
+  flex:0 0 480px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  gap:10px;
+}
+
 .diagram-stage{
   position:relative;
   width:360px;
@@ -385,6 +398,18 @@ a{color:inherit;}
   position:relative;
 }
 .diagram-img{width:100%; height:auto; display:block; pointer-events:none; filter:drop-shadow(0 14px 26px rgba(0,0,0,.4));}
+.diagram-note{
+  margin-top:15px;
+  width:100%;
+  text-align:left;
+
+  font-family:var(--font-body);
+  font-size:16px;
+  font-style:italic;
+  font-weight:400;
+
+  color:#007A7A;
+}
 .point-layer{position:absolute; inset:0;}
 .point{
   position:absolute; width:30px; height:30px; margin:-15px 0 0 -15px;
@@ -502,7 +527,7 @@ a{color:inherit;}
 
 .device-caption{
   display:flex; align-items:flex-start; gap:8px;
-  color:#007A7A; font-size:18.5px; font-weight:600; text-align:left; width:480px; line-height:1.5; margin-bottom:-40px;
+  color:#007A7A; font-size:18.5px; font-weight:600; text-align:left; width:480px; line-height:1.5; margin-bottom:0px;
 }
 .device-caption b{color:#007A7A; font-weight:700;}
 .device-caption svg{flex:0 0 auto; opacity:.85; margin-top:1px;}
@@ -516,14 +541,15 @@ a{color:inherit;}
      Lebarnya sengaja dibuat lebih LEBAR dari device (bukan dibatasi sama
      sempit) supaya teksnya memanjang ke kanan sesuai referensi, bukan
      menumpuk jadi banyak baris pendek. */
-  width:520px;
-  font-size:18.5px;
+  width:430px;
+  font-size:16px;
   font-style:italic;
   line-height:1.5;
   color:#007A7A;
   text-align:left;
-  padding-top:8px;
+  padding-top:0px;
   border-top:1px solid rgba(0,97,97,.15);
+  align-self:center;
 }
 
 /* ---- LCD inner UI (single-page layout) ---- */

@@ -456,22 +456,30 @@
 
     <!-- ============ PHYSICAL DEVICE MOCKUP ============ -->
     <div class="device-wrap">
-      <div class="device-caption">
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 18h6"/></svg>
-        <span><b>PERANGKAT FISIK TWINKHDS</b><br>Dioperasikan langsung oleh nakes via LCD &amp; 3 tombol ini</span>
-      </div>
       <div class="device-diagram-row">
-        <div class="device">
-          <img src="assets/device.png" alt="Perangkat fisik TWINKHDS" class="device-img" draggable="false">
-          <div class="device-led led-red" id="deviceLed" title="Indikator status rekam"></div>
-          <div class="device-lcd" id="deviceLcd"></div>
-          <button class="device-btn btn-kiri" data-devbtn="kiri" aria-label="Geser kursor kiri"></button>
-          <button class="device-btn btn-pilih" data-devbtn="pilih" aria-label="Pilih / konfirmasi"></button>
-          <button class="device-btn btn-kanan" data-devbtn="kanan" aria-label="Geser kursor kanan"></button>
-          <div class="device-label lbl-kiri">◀ Kiri</div>
-          <div class="device-label lbl-pilih">Pilih</div>
-          <div class="device-label lbl-kanan">Kanan ▶</div>
-          <div class="device-port" id="devicePort"></div>
+
+        <div class="device-column">
+          <div class="device-caption">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 18h6"/></svg>
+            <span><b>PERANGKAT FISIK TWINKHDS</b><br>Dioperasikan langsung oleh nakes via LCD &amp; 3 tombol ini</span>
+          </div>
+
+          <div class="device">
+            <img src="assets/device.png" alt="Perangkat fisik TWINKHDS" class="device-img" draggable="false">
+            <div class="device-led led-red" id="deviceLed" title="Indikator status rekam"></div>
+            <div class="device-lcd" id="deviceLcd"></div>
+            <button class="device-btn btn-kiri" data-devbtn="kiri" aria-label="Geser kursor kiri"></button>
+            <button class="device-btn btn-pilih" data-devbtn="pilih" aria-label="Pilih / konfirmasi"></button>
+            <button class="device-btn btn-kanan" data-devbtn="kanan" aria-label="Geser kursor kanan"></button>
+            <div class="device-label lbl-kiri">◀ Kiri</div>
+            <div class="device-label lbl-pilih">Pilih</div>
+            <div class="device-label lbl-kanan">Kanan ▶</div>
+            <div class="device-port" id="devicePort"></div>
+          </div>
+
+          <div class="device-disclaimer">
+            *Seluruh bagian output pada purwarupa ini, termasuk hasil prediksi, skor risiko, penjelasan hasil deteksi dini bersifat placeholder dan belum merepresentasikan performa maupun spesifikasi akhir, mengingat model machine learning belum diintegrasikan secara fungsional.
+          </div>
         </div>
 
         <div class="diagram-stage">
@@ -485,13 +493,14 @@
               <button class="point" data-idx="3" style="left:64.99%; top:72.40%;" aria-label="Titik Mitral"></button>
             </div>
           </div>
+
+          <div class="diagram-note">
+            *Ilustrasi anak dibuat dengan bantuan AI generatif.
+          </div>
         </div>
 
         <svg class="cable-svg" id="cableSvg"><path id="cablePath" fill="none"></path></svg>
         <img src="assets/probe.png" class="device-probe" id="deviceProbe" alt="Probe stetoskop" draggable="false">
-      </div>
-      <div class="device-disclaimer">
-        Seluruh bagian output pada purwarupa ini, termasuk hasil prediksi, skor risiko, penjelasan hasil deteksi dini bersifat placeholder dan belum merepresentasikan performa maupun spesifikasi akhir, mengingat model machine learning belum diintegrasikan secara fungsional.
       </div>
     </div>
 
