@@ -51,11 +51,41 @@
     document.dispatchEvent(new CustomEvent(name, { detail: detail || {} }));
   }
 
-  // Simulasi output Model 1 (CNN) per titik: probabilitas murmur.
-  // Rasio Absent:Present pada dataset CirCor kira-kira 4:1, disimulasikan di sini.
-  function weightedResult(){
-    const murmur = Math.random() < 0.25;
-    const prob = murmur ? (0.55 + Math.random()*0.42) : (0.03 + Math.random()*0.40);
+  // Simulasi output Model 1 (CNN) - dikalibrasi mengikuti distribusi ASLI
+  // probabilitas murmur per pasien dari model1_patient_prob_murmur.csv
+  // (hasil inferensi CNN sungguhan atas dataset CirCor, lihat notebook):
+  //   Murmur Absent (n=694): rata-rata 0.285, std 0.081
+  //   Murmur Present (n=179): rata-rata 0.601, std 0.262
+  //   Prevalensi Present di dataset: ~20.5% (179/873)
+  // Satu keputusan "ada/tidak murmur" diambil SEKALI per pasien (bukan per titik
+  // independen) karena murmur bersifat fokal (Bagian 4.2 dokumen keteknisan) -
+  // titik dengan sinyal terkuat mendapat probabilitas target ini persis
+  // (sehingga MAX Pooling di app.js == target, sesuai kalibrasi di atas),
+  // titik lain di sekitarnya mendapat probabilitas lebih rendah.
+  let patientHasMurmur = null;
+  let patientTargetProb = null;
+  let dominantPointIdx = null;
+
+  function clampVal(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+  function ensurePatientMurmurProfile(){
+    if(patientHasMurmur !== null) return;
+    patientHasMurmur = Math.random() < 0.205;
+    patientTargetProb = patientHasMurmur
+      ? clampVal(0.601 + (Math.random()-0.5)*2*0.26, 0.15, 0.99)
+      : clampVal(0.285 + (Math.random()-0.5)*2*0.081, 0.05, 0.70);
+    dominantPointIdx = Math.floor(Math.random()*4);
+  }
+
+  function weightedResult(pointIdx){
+    ensurePatientMurmurProfile();
+    let prob;
+    if(pointIdx === dominantPointIdx){
+      prob = patientTargetProb; // titik dengan sinyal terkuat = probabilitas target pasien
+    } else {
+      prob = patientTargetProb * (0.4 + Math.random()*0.45); // titik lain lebih lemah (murmur fokal)
+    }
+    const murmur = prob >= 0.5;
     return { murmur, prob };
   }
 
@@ -250,7 +280,7 @@
       return;
     }
 
-    const { murmur, prob } = weightedResult();
+    const { murmur, prob } = weightedResult(D.cursor);
     D.results[D.cursor] = { murmur, prob };
     D.done[D.cursor] = true;
     D.state = "complete";
@@ -408,6 +438,27 @@
 
   window.addEventListener("resize", ()=>{ if(D.phoneReady) requestAnimationFrame(updateCable); });
 
+  /* ---------- reset penuh untuk pasien baru (dipanggil dari app.js setelah hasil disimpan) ---------- */
+  function resetForNewPatient(){
+    clearInterval(D.recTimer);
+    D.state = "idle";
+    D.cursor = 0;
+    D.done = [false,false,false,false];
+    D.results = [null,null,null,null];
+    D.recElapsed = 0;
+    D.probeAttached = false;
+    D.recordingHadContact = false;
+    D.lastWeakSignal = false;
+    D.weakSignalIndex = null;
+    // reset profil simulasi murmur pasien juga, supaya pasien baru dapat
+    // probabilitas baru (bukan daur ulang dari pasien sebelumnya)
+    patientHasMurmur = null;
+    patientTargetProb = null;
+    dominantPointIdx = null;
+    render();
+    resetProbePosition(false);
+  }
+
   /* ---------- public snapshot for app.js ---------- */
   window.TwinkhdsDevice = {
     getSnapshot(){
@@ -422,7 +473,8 @@
         lastWeakSignal: D.lastWeakSignal,
         weakSignalIndex: D.weakSignalIndex,
       };
-    }
+    },
+    resetForNewPatient,
   };
 
   /* ---------- button wiring with press visual feedback ---------- */

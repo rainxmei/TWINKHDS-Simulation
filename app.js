@@ -1,7 +1,12 @@
 /* =========================================================
    TWINKHDS - Demo App Logic (GEMASTE X EXPO 2026)
-   Semua data & inferensi AI pada file ini adalah SIMULASI
-   untuk keperluan demonstrasi antarmuka (lihat modal "Tentang").
+   Model 1 (CNN, per titik auskultasi) DISIMULASIKAN secara acak
+   di device.js untuk keperluan demonstrasi antarmuka (tidak perlu
+   input suara sungguhan - lihat modal "Tentang").
+   Model 2 (Logistic Regression di computeResult() bawah) BUKAN
+   simulasi - koefisiennya adalah hasil pelatihan sungguhan atas
+   dataset CirCor menggunakan Prob.Murmur asli dari Model 1 (CNN)
+   yang sudah dilatih (model1_final.keras).
    Alur: Data Pasien (Nama, Usia, Gender, BB, TB) -> Panduan Auskultasi
    -> Rekam 4 Titik (A/P/T/M) -> Proses AI (CNN + Logistic Regression)
    -> Hasil (Jantung Normal/Abnormal) -> Penjelasan AI (Grad-CAM)
@@ -419,37 +424,70 @@
     const genderVal = p.gender === "P" ? 1 : 0;
 
     /* Z = β0 + β1(Prob.Murmur) + β2(Usia) + β3(Gender) + β4(BB) + β5(TB)
-       Koefisien di bawah ini HANYA untuk simulasi tampilan antarmuka
-       (lihat modal "Tentang"), bukan hasil pelatihan model sesungguhnya. */
-    const z = -3.0
-      + 6.4 * probMurmur
-      + 0.05 * (ageY - 5)
-      + 0.15 * genderVal
-      + 0.01 * (weight - 20)
-      - 0.006 * (height - 110)
-      + rand(-0.35, 0.35);
+       Koefisien di bawah ini adalah hasil pelatihan sungguhan
+       (sklearn.linear_model.LogisticRegression) atas dataset CirCor,
+       dengan Prob.Murmur = probabilitas asli dari Model 1 (CNN,
+       model1_final.keras) yang dihitung untuk setiap pasien lalu
+       di-MAX-pooling per pasien. Lihat model2_lr_coeffs_FINAL.json.
+       Evaluasi test split: Sensitivitas 42.86% | Spesifisitas 82.76% |
+       ROC-AUC 0.6586 | Akurasi 63.16% (n_test=114, n_train=644). */
+    const LR_BETA0        = -1.637072;
+    const LR_BETA_PROB    =  5.110818;  // Probabilitas Murmur (0-1)
+    const LR_BETA_AGE     =  0.015202;  // Usia (tahun)
+    const LR_BETA_GENDER  =  0.164808;  // Gender (1=Perempuan, 0=Laki-laki)
+    const LR_BETA_WEIGHT  =  0.012309;  // Berat Badan (kg)
+    const LR_BETA_HEIGHT  = -0.005442;  // Tinggi Badan (cm)
+
+    const z = LR_BETA0
+      + LR_BETA_PROB   * probMurmur
+      + LR_BETA_AGE    * ageY
+      + LR_BETA_GENDER * genderVal
+      + LR_BETA_WEIGHT * weight
+      + LR_BETA_HEIGHT * height;
     const pAbnormal = 1 / (1 + Math.exp(-z));
     const tier = pAbnormal >= 0.5 ? "abnormal" : "normal";           // threshold 0,5, bawaan sigmoid
     const confidence = (tier==="abnormal" ? pAbnormal : (1-pAbnormal)) * 100;
 
-    /* Kontribusi faktor: Odds Ratio (tim internal) & LinearSHAP (nakes) - simulasi tampilan */
-    const factors = [];
-    factors.push(probMurmur>=0.5
-      ? { label:`Probabilitas Murmur Tinggi (${Math.round(probMurmur*100)}%)`, weight:probMurmur*100, positive:true }
-      : { label:`Probabilitas Murmur Rendah (${Math.round(probMurmur*100)}%)`, weight:(1-probMurmur)*60, positive:false });
-    factors.push({ label:`Usia (${ageDisplay})`, weight:clamp(Math.abs(ageY-5)*6+18,0,100), positive: ageY<1 || ageY>12 });
-    factors.push({ label:`Jenis Kelamin (${genderVal===1?"Perempuan":"Laki-laki"})`, weight:22, positive: genderVal===1 });
-    factors.push({ label:`Berat Badan (${weight} Kg)`, weight:clamp(Math.abs(weight-20)*2+16,0,100), positive: weight<12 || weight>35 });
-    factors.push({ label:`Tinggi Badan (${height} Cm)`, weight:clamp(Math.abs(height-110)/1.5+16,0,100), positive: height<85 });
+    /* Kontribusi faktor (Odds Ratio & LinearSHAP): dihitung LANGSUNG dari
+       kontribusi nyata tiap fitur ke rumus z di atas (β_i x (nilai pasien -
+       rata-rata dataset CirCor)), supaya SELALU konsisten arahnya dengan
+       hasil akhir - bukan heuristik ambang batas terpisah seperti versi lama. */
+    const REF_PROB   = 0.36;   // rata-rata prob_murmur dataset training
+    const REF_AGE    = 6.09;   // rata-rata usia (tahun)
+    const REF_WEIGHT = 24.23;  // rata-rata berat badan (kg)
+    const REF_HEIGHT = 112.42; // rata-rata tinggi badan (cm)
+    const REF_GENDER = 0;      // baseline: laki-laki
 
-    const finalFactors = factors.sort((a,b)=>b.weight-a.weight).slice(0,5);
-    const sumW = finalFactors.reduce((s,f)=>s+f.weight,0) || 1;
+    const contrib = {
+      prob:   LR_BETA_PROB   * (probMurmur - REF_PROB),
+      age:    LR_BETA_AGE    * (ageY       - REF_AGE),
+      gender: LR_BETA_GENDER * (genderVal  - REF_GENDER),
+      weight: LR_BETA_WEIGHT * (weight     - REF_WEIGHT),
+      height: LR_BETA_HEIGHT * (height     - REF_HEIGHT),
+    };
+    const maxAbsContrib = Math.max(...Object.values(contrib).map(Math.abs), 0.001);
+
+    const factors = [];
+    // Titik impas (tipping point) probMurmur UNTUK DEMOGRAFI PASIEN INI:
+    // nilai probMurmur minimum yang membuat z (dan hasil akhir) menjadi Abnormal,
+    // dengan usia/gender/BB/TB pasien ini tetap. Dipakai supaya label
+    // "Tinggi/Rendah" SELALU konsisten dengan hasil akhir - bukan ambang
+    // 50% tetap yang tidak memperhitungkan pengaruh demografi.
+    const zWithoutProb = LR_BETA0 + LR_BETA_AGE*ageY + LR_BETA_GENDER*genderVal + LR_BETA_WEIGHT*weight + LR_BETA_HEIGHT*height;
+    const probTippingPoint = clamp(-zWithoutProb / LR_BETA_PROB, 0, 1);
+    const probLabel = probMurmur >= probTippingPoint ? "Tinggi" : "Rendah";
+
+    factors.push({ label:`Probabilitas Murmur ${probLabel} (${Math.round(probMurmur*100)}%)`, weight: clamp(Math.abs(contrib.prob)/maxAbsContrib*100,4,100), positive: contrib.prob>=0, shap: contrib.prob });
+    factors.push({ label:`Usia (${ageDisplay})`, weight: clamp(Math.abs(contrib.age)/maxAbsContrib*100,4,100), positive: contrib.age>=0, shap: contrib.age });
+    factors.push({ label:`Jenis Kelamin (${genderVal===1?"Perempuan":"Laki-laki"})`, weight: clamp(Math.abs(contrib.gender)/maxAbsContrib*100,4,100), positive: contrib.gender>=0, shap: contrib.gender });
+    factors.push({ label:`Berat Badan (${weight} Kg)`, weight: clamp(Math.abs(contrib.weight)/maxAbsContrib*100,4,100), positive: contrib.weight>=0, shap: contrib.weight });
+    factors.push({ label:`Tinggi Badan (${height} Cm)`, weight: clamp(Math.abs(contrib.height)/maxAbsContrib*100,4,100), positive: contrib.height>=0, shap: contrib.height });
+
+    const finalFactors = factors.sort((a,b)=>Math.abs(b.shap)-Math.abs(a.shap));
     finalFactors.forEach(f=>{
-      f.relPct = Math.round((f.weight/sumW)*100);
-      const magnitude = 0.08 + (f.weight/100)*0.42 + rand(-0.02,0.02);
-      f.shap = (f.positive ? magnitude : -magnitude);
-      // Odds Ratio disimulasikan dari arah & besar kontribusi SHAP (OR=1 artinya netral)
-      f.oddsRatio = Math.exp(f.shap * 2.3);
+      f.relPct = Math.round(f.weight);
+      // Odds Ratio = exp(kontribusi log-odds fitur ini)
+      f.oddsRatio = Math.exp(f.shap);
     });
 
     state.result = {
@@ -652,6 +690,9 @@
     state.points = new Array(4).fill(null);
     state.result = null;
     resetPatientForm();
+    if(window.TwinkhdsDevice && window.TwinkhdsDevice.resetForNewPatient){
+      window.TwinkhdsDevice.resetForNewPatient();
+    }
     setTimeout(()=> goTo("beranda"), 300);
   }
 
